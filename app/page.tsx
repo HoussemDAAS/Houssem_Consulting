@@ -5,16 +5,54 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
+import Image from 'next/image';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-black">
-      {/* Left Section with Image */}
-      <div className="relative md:w-1/2 h-[40vh] md:h-screen">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/20" />
+    {/* Brand Showcase Section */}
+    <div className="relative md:w-1/2 h-[40vh] md:h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-8">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 opacity-10 dark:opacity-15">
+        <div className="absolute w-full h-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+      </div>
+
+      {/* Logo Container */}
+      <div className="relative z-10 space-y-8 text-center group">
+        {/* Main Logo */}
+        <div className="relative w-48 h-48 mx-auto transition-transform duration-300 hover:scale-105">
+          <Image
+            src="/logo.jpeg
+          " // Replace with actual logo path
+            alt="Consulting Agency Logo"
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+
+        {/* Animated Tagline */}
+        <div className="overflow-hidden">
+          <div className="animate-slide-up-fade space-y-2">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
+              Strategic Business Solutions
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto text-sm">
+              Transforming visions into measurable success through expert consulting
+            </p>
+          </div>
+        </div>
+
+        {/* Core Values Grid */}
+        <div className="grid grid-cols-3 gap-4 mt-8 max-w-xl mx-auto">
+          {['Strategy', 'Innovation', 'Growth', 'Analysis', 'Planning', 'Success'].map((value) => (
+            <div key={value} className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{value}</span>
+            </div>
+          ))}
         </div>
       </div>
+    </div>
 
       {/* Right Section */}
       <div className="relative md:w-1/2 flex items-center justify-center p-8">

@@ -43,7 +43,27 @@ body {
 .animate-marquee {
   animation: marquee 20s linear infinite;
 }
+@keyframes slide-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
+.animate-slide-up-fade {
+  animation: slide-up-fade 1s ease-out forwards;
+}
+
+/* Subtle grid animation */
+@keyframes grid-pulse {
+  0% { opacity: 0.1; }
+  50% { opacity: 0.15; }
+  100% { opacity: 0.1; }
+}
 /* Better input transitions */
 input {
   transition-property: box-shadow, transform;
