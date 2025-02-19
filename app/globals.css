@@ -8,7 +8,11 @@
 body {
   font-family: 'Inter', sans-serif;
 }
-
+@layer utilities {
+  .animate-gradient-move {
+    background-size: 200% 200%;
+  }
+}
 @keyframes scroll-text {
   0% { transform: translateY(0); }
   50% { transform: translateY(-100%); }

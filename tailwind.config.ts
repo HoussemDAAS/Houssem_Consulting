@@ -14,6 +14,14 @@ export default {
 			  '0%, 100%': { transform: 'translateY(0)' },
 			  '50%': { transform: 'translateY(-100%)' },
 			},
+			'gradient-move': {
+				'0%': { backgroundPosition: '0% 0%' },
+				'100%': { backgroundPosition: '100% 100%' }
+			  },
+			'infinite-scroll': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' },
+        },
 			marquee: {
 				'0%': { transform: 'translateX(0)' },
 				'100%': { transform: 'translateX(-50%)' },
@@ -21,7 +29,9 @@ export default {
 		  },
 		  animation: {
 			'scroll-text': 'scroll-text 6s infinite ease-in-out',
-			marquee: 'marquee 20s linear infinite'
+			marquee: 'marquee 20s linear infinite',
+			'infinite-scroll': 'infinite-scroll 25s linear infinite',
+			'gradient-move': 'gradient-move 20s linear infinite',
 		  },
 		
   		colors: {
