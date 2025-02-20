@@ -9,6 +9,7 @@ export default {
   ],
   theme: {
   	extend: {
+		
 		keyframes: {
 			'scroll-text': {
 			  '0%, 100%': { transform: 'translateY(0)' },
@@ -35,6 +36,9 @@ export default {
 		  },
 		
   		colors: {
+			primaryColor: "#0b0b0b",  // Deep Black
+			secondaryColor: "#ccbeac", // Warm Beige
+			accentColor: "#f9f9f4",
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -76,6 +80,7 @@ export default {
   				'5': 'hsl(var(--chart-5))'
   			}
   		},
+		
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

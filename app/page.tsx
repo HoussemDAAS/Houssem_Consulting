@@ -1,97 +1,83 @@
-// app/page.tsx (Home)
-
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowRight, Rocket, Briefcase, Lightbulb } from "lucide-react";
+import { ArrowRight, Rocket, Briefcase } from "lucide-react";
 import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Animated Background */}
-      <div className="absolute inset-0 opacity-20 dark:opacity-30">
-        <div className="w-full h-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:48px_48px] animate-gradient-move" />
+    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center p-8 relative overflow-hidden bg-AccentColor text-PrimaryColor">
+      {/* Subtle Background Design */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute w-full h-full bg-[url('/grid-pattern.svg')] bg-[size:60px_60px] opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-AccentColor to-secondary/20" />
       </div>
 
-      {/* Brand Section */}
-      <div className="relative md:w-1/2 flex flex-col items-center justify-center p-8 space-y-12">
-        <div className="relative w-64 h-64 group">
-          <Image
-            src="/logo.jpeg"
-            alt="Logo"
-            fill
-            className="object-contain transition-transform duration-500 group-hover:scale-95"
-          />
-          <div className="absolute inset-0 rounded-full border-2 border-gray-300 dark:border-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-col md:flex-row items-center gap-16 max-w-7xl w-full">
+        {/* Brand Showcase */}
+        <div className="flex-1 space-y-8 text-center md:text-left">
+          <div className="relative w-64 h-64 mx-auto md:mx-0 mb-12">
+            <Image
+              src="/logo.jpeg"
+              alt="Consulting Agency Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
+
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primaryColor to-secondaryColor bg-clip-text text-transparent leading-tight uppercase">
+            Strategic Excellence
+            <br />
+            <span className="text-lg font-light text-secondaryColor mt-4 block">
+              Global Business Transformation Partners
+            </span>
+          </h1>
+
+          {/* Auth Actions */}
+          <div className="flex flex-col md:flex-row gap-6 justify-center md:justify-start mt-16">
+            <Button 
+              className="group h-14 px-12 bg-primaryColor text-accentColor 
+                        backdrop-blur-lg border border-secondaryColor shadow-md
+                        hover:shadow-lg hover:scale-105 transition-all"
+              asChild
+            >
+              <a href="/login" className="space-x-4 flex items-center">
+                <Briefcase className="h-6 w-6 text-PrimaryColor" />
+                <span className="text-lg">Partner Login</span>
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-2" />
+              </a>
+            </Button>
+
+            <Button 
+              variant="ghost"
+              className="group h-14 px-12 border-2 border-PrimaryColor bg-AccentColor text-PrimaryColor
+                        hover:bg-secondary hover:text-PrimaryColor transition-all
+                        hover:scale-105 hover:shadow-lg"
+              asChild
+            >
+              <a href="/signup" className="space-x-4 flex items-center">
+                <Rocket className="h-6 w-6 text-PrimaryColor" />
+                <span className="text-lg">Begin Journey</span>
+              </a>
+            </Button>
+          </div>
         </div>
 
-        {/* Core Values Grid */}
-        <div className="grid grid-cols-3 gap-4 max-w-2xl w-full">
-          {['Strategy', 'Innovation', 'Growth', 'Analysis', 'Planning', 'Success'].map((value, index) => (
+        {/* Interactive Core Values */}
+        <div className="flex-1 grid grid-cols-2 gap-8 p-8">
+          {['Strategy', 'Innovation', 'Growth', 'Excellence'].map((value) => (
             <div 
               key={value}
-              className={`p-3 rounded-xl transition-all duration-300 hover:scale-105 ${
-                index % 2 === 0 
-                  ? 'bg-black text-white dark:bg-white dark:text-black' 
-                  : 'bg-white text-black dark:bg-gray-800 dark:text-white'
-              }`}
+              className="aspect-square flex items-center justify-center p-6 
+                        bg-AccentColor border border-PrimaryColor shadow-sm
+                        hover:bg-secondary transition-all
+                        rotate-3 hover:rotate-0 cursor-pointer"
             >
-              <div className="flex items-center gap-2 justify-center">
-                {index % 2 === 0 ? (
-                  <Briefcase className="h-4 w-4" />
-                ) : (
-                  <Lightbulb className="h-4 w-4" />
-                )}
-                <span className="text-xs font-bold">{value}</span>
-              </div>
+              <span className="text-lg md:text-2xl font-bold text-PrimaryColor">
+                {value}
+              </span>
             </div>
           ))}
         </div>
-
-        {/* Animated Tagline */}
-        <div className="relative overflow-hidden w-full max-w-2xl">
-          <div className="animate-infinite-scroll text-center">
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
-              Transforming Business Visions into Reality
-            </h2>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Section */}
-      <div className="relative md:w-1/2 flex items-center justify-center p-8">
-        <Card className="w-full max-w-xl p-12 space-y-8 backdrop-blur-lg bg-white/90 dark:bg-gray-900/90 border-0 shadow-2xl">
-          <div className="space-y-6 text-center">
-            <Rocket className="h-16 w-16 mx-auto text-gray-800 dark:text-gray-200 animate-bounce" />
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              Excellence Starts Here
-            </h1>
-            
-            <div className="space-y-6 pt-8">
-              <Button 
-                className="w-full h-16 bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black 
-                          text-white text-lg flex justify-between items-center px-8 transition-all hover:scale-[1.02]"
-                asChild
-              >
-                <a href="/login">
-                  <span>Sign In</span>
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-2" />
-                </a>
-              </Button>
-
-              <Button 
-                variant="outline"
-                className="w-full h-16 border-2 border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200 
-                          hover:bg-gray-50 dark:hover:bg-gray-800 text-lg hover:scale-[0.98] transition-all"
-                asChild
-              >
-                <a href="/signup">
-                  <span>Create Account</span>
-                </a>
-              </Button>
-            </div>
-          </div>
-        </Card>
       </div>
     </div>
   );

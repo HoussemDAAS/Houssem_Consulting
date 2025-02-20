@@ -28,12 +28,7 @@ export default function LoginPage() {
               Strategic Business Solutions
             </h2>
           </div>
-        </div>
-      </div>
-
-      {/* Login Form */}
-      <div className="relative md:w-1/2 flex items-center justify-center p-8">
-      <div className="grid grid-cols-3 gap-4 mt-8 max-w-xl mx-auto">
+          <div className="grid grid-cols-3 gap-4 mt-8 max-w-xl mx-auto">
   {['Strategy', 'Innovation', 'Growth', 'Analysis', 'Planning', 'Success'].map((value, index) => (
     <div 
       key={value}
@@ -54,6 +49,13 @@ export default function LoginPage() {
     </div>
   ))}
 </div>
+        </div>
+        
+      </div>
+
+      {/* Login Form */}
+      <div className="relative md:w-1/2 flex items-center justify-center p-8">
+     
         <Card className="w-full max-w-md p-8 space-y-6 shadow-2xl dark:shadow-gray-900/30">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
