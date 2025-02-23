@@ -61,7 +61,26 @@ body {
 .animate-slide-up-fade {
   animation: slide-up-fade 1s ease-out forwards;
 }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+/* global.css */
+.draggable-card {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.drag-handle {
+  transition: background-color 0.2s ease;
+}
+/* Smooth transitions */
+.client-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 /* Subtle grid animation */
 @keyframes grid-pulse {
   0% { opacity: 0.1; }

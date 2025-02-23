@@ -9,7 +9,10 @@ export default {
   ],
   theme: {
   	extend: {
-		
+		transitionProperty: {
+			'transform': 'transform',
+			'border': 'border-color'
+		  },
 		keyframes: {
 			'scroll-text': {
 			  '0%, 100%': { transform: 'translateY(0)' },

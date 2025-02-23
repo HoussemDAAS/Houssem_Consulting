@@ -56,7 +56,7 @@ export default function Home() {
             >
               <a href="/signup" className="space-x-4 flex items-center">
                 <Rocket className="h-6 w-6 text-PrimaryColor" />
-                <span className="text-lg">Begin Journey</span>
+                <span className="text-lg">Join us</span>
               </a>
             </Button>
           </div>

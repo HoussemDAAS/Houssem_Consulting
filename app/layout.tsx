@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-
+// app/layout.tsx
+import '../polyfills';
 import "./globals.css";
 import { Inter } from 'next/font/google'
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ['latin'] });
 // const geistSans = Geist({
@@ -29,7 +31,9 @@ export default function RootLayout({
       <body
         className={`${inter.className} antialiased`}
       >
-        {children}
+           <AuthProvider>
+      {children}
+    </AuthProvider>
       </body>
     </html>
   );
