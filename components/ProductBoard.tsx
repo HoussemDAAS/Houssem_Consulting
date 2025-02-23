@@ -58,60 +58,45 @@ export default function ProductBoard() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Gestion des Produits</h1>
+    <div className="p-6 space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
+          Product Management
+        </h1>
         <button
-          onClick={() => {
-            setSelectedProduct(null);
-            setModalOpen(true);
-          }}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          onClick={() => { setSelectedProduct(null); setModalOpen(true); }}
+          className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#ccbeac]/90"
         >
-          <PlusIcon /> Ajouter un Produit
+          <PlusIcon className="h-5 w-5" />
+          Add Product
         </button>
       </div>
 
-      {error ? (
-        <div className="text-red-500 p-8">{error}</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
-         <ProductCard
-         key={product._id}
-         product={product}
-         onEdit={() => {
-           setSelectedProduct(product);
-           setModalOpen(true);
-         }}
-         onDelete={() => handleDelete(product._id)}
-         onClick={() => setSelectedProductDetails(product)}
-       />
-          ))}
-        </div>
-      )}
-
-      {products.length === 0 && !loading && (
-        <div className="text-center text-gray-500 mt-8">
-          Aucun produit trouvé
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map((product) => (
+          <ProductCard
+            key={product._id}
+            product={product}
+            onEdit={() => { setSelectedProduct(product); setModalOpen(true); }}
+            onDelete={() => handleDelete(product._id)}
+            onClick={() => setSelectedProductDetails(product)}
+          />
+        ))}
+      </div>
 
       <ProductModal
         isOpen={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedProduct(null);
-        }}
+        onClose={() => { setModalOpen(false); setSelectedProduct(null); }}
         product={selectedProduct}
         refreshProducts={fetchProducts}
       />
-       {selectedProductDetails && (
-    <ProductDetailsSidebar
-      product={selectedProductDetails}
-      onClose={() => setSelectedProductDetails(null)}
-    />
-  )}
+
+      {selectedProductDetails && (
+        <ProductDetailsSidebar
+          product={selectedProductDetails}
+          onClose={() => setSelectedProductDetails(null)}
+        />
+      )}
     </div>
   );
 }

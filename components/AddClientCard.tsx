@@ -1,17 +1,22 @@
+// AddClientCard.tsx
 'use client';
 
-export default function AddClientCard({ status }: { status: string }) {
+export default function AddClientCard({ status, onClick }: { 
+  status: string; 
+  onClick: () => void 
+}) {
   return (
-    <div className="p-5">
+    <div className="p-5 min-w-[300px]">
       <button 
-        className="w-full bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 transition-colors relative group h-32"
+        onClick={onClick}
+        className="w-full bg-[#f9f9f4] dark:bg-[#0b0b0b] rounded-xl border-2 border-dashed border-[#ccbeac] hover:border-[#0b0b0b] dark:hover:border-[#f9f9f4] transition-colors relative group h-32"
       >
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative">
-            <div className="absolute inset-0 bg-blue-100 dark:bg-blue-900/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-[#ccbeac]/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-8 w-8 text-blue-400 transform group-hover:rotate-90 transition-transform"
+              className="h-8 w-8 text-[#ccbeac] transform group-hover:rotate-90 transition-transform"
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"

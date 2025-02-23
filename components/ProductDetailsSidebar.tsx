@@ -1,6 +1,8 @@
-"use client";
+// ProductDetailsSidebar.tsx
+'use client';
 import { ProductDocument } from "@/lib/models/Product";
 import { motion } from "framer-motion";
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function ProductDetailsSidebar({ product, onClose }: {
   product: ProductDocument;
@@ -11,72 +13,61 @@ export default function ProductDetailsSidebar({ product, onClose }: {
       initial={{ x: '100%' }}
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
-      className="fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-gray-800 shadow-xl p-6 z-50 h-screen"
+      className="fixed inset-y-0 right-0 w-full max-w-md bg-[#f9f9f4] dark:bg-[#0b0b0b] shadow-xl p-6 z-50 h-screen border-l border-[#ccbeac]"
     >
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">{product.name}</h2>
-        <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-300">
-          ✕
+      <div className="flex justify-between items-center pb-6 border-b border-[#ccbeac]">
+        <h2 className="text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">{product.name}</h2>
+        <button 
+          onClick={onClose}
+          className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75 transition-opacity"
+        >
+          <XMarkIcon className="h-6 w-6" />
         </button>
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">DETAILS TECHNIQUES</h3>
-          <div className="space-y-3">
-            {product.fabricant && (
-              <div>
-                <p className="font-medium">{product.fabricant}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Fabricant</p>
-              </div>
-            )}
-            {product.modele && (
-              <div>
-                <p className="font-medium">{product.modele}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Modèle</p>
-              </div>
-            )}
-            {/* Add similar conditional blocks for other fields */}
-            <div>
-              <p className="font-medium">{product.reference}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Référence</p>
-            </div>
-            {product.plageMesure && (
-              <div>
-                <p className="font-medium">{product.plageMesure}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Plage de mesure</p>
-              </div>
-            )}
-            {product.annee && (
-              <div>
-                <p className="font-medium">{product.annee}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Année</p>
-              </div>
-            )}
-            {product.versionLogiciel && (
-              <div>
-                <p className="font-medium">{product.versionLogiciel}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Version Logiciel</p>
-              </div>
-            )}
+      <div className="pt-6 space-y-8 overflow-y-auto h-[calc(100vh-160px)]">
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Technical Details</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(product).filter(([key]) => 
+              !['_id', 'subProducts', 'autreInformation'].includes(key)
+            ).map(([key, value]) => (
+              value && (
+                <div key={key} className="space-y-1">
+                  <p className="text-sm text-[#0b0b0b] dark:text-[#ccbeac]/80 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
+                  <p className="font-medium text-[#0b0b0b] dark:text-[#f9f9f4]">
+                    {value}
+                  </p>
+                </div>
+              )
+            ))}
           </div>
         </div>
 
         {product.autreInformation && (
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">INFORMATIONS COMPLÉMENTAIRES</h3>
-            <p className="text-gray-700 dark:text-gray-300">{product.autreInformation}</p>
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Additional Information</h3>
+            <p className="text-[#0b0b0b] dark:text-[#f9f9f4] leading-relaxed">
+              {product.autreInformation}
+            </p>
           </div>
         )}
 
-{product.subProducts.length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">SOUS-PRODUITS</h3>
-            <div className="space-y-2">
+        {product.subProducts?.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Subproducts</h3>
+            <div className="space-y-3">
               {product.subProducts.map((sub, index) => (
-                <div key={index} className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                  <p className="font-medium">{sub.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">{sub.specifications}</p>
+                <div 
+                  key={index}
+                  className="p-4 rounded-lg bg-white dark:bg-[#0b0b0b] border border-[#ccbeac]"
+                >
+                  <h4 className="font-medium text-[#0b0b0b] dark:text-[#f9f9f4] mb-2">{sub.name}</h4>
+                  {sub.specifications && (
+                    <p className="text-sm text-[#0b0b0b]/80 dark:text-[#ccbeac]">
+                      {sub.specifications}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

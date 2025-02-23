@@ -22,17 +22,18 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   await dbConnect();
-  const token = request.headers.get('Authorization')?.split(' ')[1];
-  
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   try {
-    jwt.verify(token, process.env.JWT_SECRET!);
     const body = await request.json();
+    
+    if (!body.name) {
+      return NextResponse.json({ error: 'Product name is required' }, { status: 400 });
+    }
+
     const product = new Product(body);
     await product.save();
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+    console.error('Error:', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

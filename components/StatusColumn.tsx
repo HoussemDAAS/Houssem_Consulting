@@ -1,28 +1,20 @@
+// components/StatusColumn.tsx
 'use client';
-import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-
+import { Client } from '@/types/client';
 import ClientCard from './ClientCard';
 import AddClientCard from './AddClientCard';
-import { motion } from 'framer-motion';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
-interface Client {
-  id: string;
-  name: string;
-  status: 'active' | 'inactive';
-  email: string;
-  company: string;
-  phone: string;
-}
-
-export default function StatusColumn({ status, clients, onClientClick }: {
-  status: 'active' | 'inactive';
+export default function StatusColumn({ status, clients, onClientClick, children }: {
+  status: string;
   clients: Client[];
   onClientClick: (client: Client) => void;
+  children?: React.ReactNode;
 }) {
   const { setNodeRef } = useSortable({ id: status });
 
   return (
-    <div ref={setNodeRef} className="flex-1">
+    <div ref={setNodeRef} className="flex-1 min-w-[300px]">
       <div className="flex items-center gap-4 mb-4">
         <h2 className="text-lg font-semibold capitalize">{status} Clients</h2>
         <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-full">
@@ -30,25 +22,26 @@ export default function StatusColumn({ status, clients, onClientClick }: {
         </span>
       </div>
       
-      <SortableContext items={clients} strategy={verticalListSortingStrategy}>
-        <div className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
-          {clients.map(client => (
-            <ClientCard
-              key={client.id}
-              client={client}
-              onClick={() => onClientClick(client)}
-            />
-          ))}
-          {/* <AddClientCard status={status} /> */}
-        </div>
-      </SortableContext>
-      <motion.div 
-          initial={{ scale: 0.95 }}
-          animate={{ scale: 1 }}
-          className="min-w-[300px] flex-shrink-0"
+      <div className="flex flex-col gap-4">
+        {/* Client Cards Container */}
+        <SortableContext 
+          items={clients.map(c => c._id)} 
+          strategy={verticalListSortingStrategy}
         >
-          <AddClientCard status={status} />
-        </motion.div>
+          <div className="space-y-4">
+            {clients.map(client => (
+              <ClientCard
+                key={client._id}
+                client={client}
+                onClick={() => onClientClick(client)}
+              />
+            ))}
+          </div>
+        </SortableContext>
+        
+        {/* Add Client Card always at bottom */}
+        {children}
+      </div>
     </div>
   );
 }
