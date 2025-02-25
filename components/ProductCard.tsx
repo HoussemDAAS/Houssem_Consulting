@@ -56,20 +56,20 @@ export default function ProductCard({
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
             className="text-[#0b0b0b] dark:text-[#ccbeac] hover:text-[#ccbeac] dark:hover:text-[#f9f9f4] transition-colors"
           >
-            Edit
+            Modifier
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             className="text-red-600 hover:text-red-800 transition-colors"
           >
-            Delete
+            Supprimer
           </button>
         </div>
       </div>
 
       {product.subProducts?.length > 0 && (
         <div className="mt-6 pt-4 border-t border-[#ccbeac]/50">
-          <h4 className="text-sm font-medium text-[#ccbeac] mb-3">Subproducts</h4>
+          <h4 className="text-sm font-medium text-[#ccbeac] mb-3">Produits</h4>
           <div className="grid grid-cols-2 gap-2">
             {product.subProducts.map((sub, index) => (
               <div 

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Client } from '@/types/client';
 import { ProductDocument } from '@/lib/models/Product';
 import { motion } from 'framer-motion';
-import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/context/AuthContext';
 
 interface ClientProductWithDetails {
@@ -12,9 +12,10 @@ interface ClientProductWithDetails {
   subProducts: string[];
 }
 
-export default function ClientDetailsSidebar({ client, onClose }: {
+export default function ClientDetailsSidebar({ client, onClose, refreshClients }: {
   client: Client;
   onClose: () => void;
+  refreshClients : () => void;
 }) {
   const { user } = useAuth();
   const [allProducts, setAllProducts] = useState<ProductDocument[]>([]);
@@ -79,8 +80,9 @@ export default function ClientDetailsSidebar({ client, onClose }: {
         ...p,
         product: allProducts.find(ap => ap._id === p.product) || p.product
       })));
-      
+      refreshClients(); 
       setSelectedProductId('');
+     
       setSelectedSubProducts([]);
     } catch (error) {
       console.error('Error adding product:', error);
@@ -118,9 +120,11 @@ export default function ClientDetailsSidebar({ client, onClose }: {
         ...p,
         product: allProducts.find(ap => ap._id === p.product) || p.product
      } ),));
+      refreshClients();
     } catch (error) {
       console.error('Error removing product:', error);
       setClientProducts(clientProducts);
+      
     }
   };
 
@@ -129,11 +133,10 @@ export default function ClientDetailsSidebar({ client, onClose }: {
       initial={{ x: '100%' }}
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
-      className="fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-gray-800 shadow-xl p-6 z-50 h-screen border-l border-gray-200 dark:border-gray-700"
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 left-auto w-full max-w-md bg-white dark:bg-gray-800 shadow-xl p-6 z-50 h-screen border-l border-gray-200 dark:border-gray-700"      onClick={(e) => e.stopPropagation()}
     >
       <div className="space-y-4">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Client Details</h3>
+          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Détails du client</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <p className="text-sm text-gray-500">Email</p>
@@ -141,7 +144,7 @@ export default function ClientDetailsSidebar({ client, onClose }: {
             </div>
             {client.phone && (
               <div>
-                <p className="text-sm text-gray-500">Phone</p>
+                <p className="text-sm text-gray-500">Téléphone</p>
                 <p className="font-medium text-gray-800 dark:text-gray-200">{client.phone}</p>
               </div>
             )}
@@ -166,7 +169,7 @@ export default function ClientDetailsSidebar({ client, onClose }: {
             }}
             className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-transparent"
           >
-            <option value="">Select Product</option>
+            <option value="">Choisir une categorie</option>
             {allProducts.map(product => (
               <option
                 key={product._id}
@@ -206,7 +209,7 @@ export default function ClientDetailsSidebar({ client, onClose }: {
                 onClick={handleAddProduct}
                 className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
               >
-                Add Product
+                Ajouter une categorie
               </button>
             </div>
           )}
@@ -234,7 +237,7 @@ export default function ClientDetailsSidebar({ client, onClose }: {
                   <h4 className="font-semibold">{product.name}</h4>
                   {cp.subProducts.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500">Selected Subproducts:</p>
+                      <p className="text-sm text-gray-500">Produits sélectionnés:</p>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {cp.subProducts.map((sub, idx) => (
                           <span
@@ -249,7 +252,7 @@ export default function ClientDetailsSidebar({ client, onClose }: {
                   )}
                 </>
               ) : (
-                <span>Loading product...</span>
+                <span>Chargement du prouits ...</span>
               )}
             </div>
           );

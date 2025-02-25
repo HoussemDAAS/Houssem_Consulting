@@ -25,10 +25,10 @@ export default function Home() {
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primaryColor to-secondaryColor bg-clip-text text-transparent leading-tight uppercase">
-            Strategic Excellence
+          Excellence stratégique
             <br />
             <span className="text-lg font-light text-secondaryColor mt-4 block">
-              Global Business Transformation Partners
+            Partenaires mondiaux de transformation d’entreprise
             </span>
           </h1>
 
@@ -42,23 +42,12 @@ export default function Home() {
             >
               <a href="/login" className="space-x-4 flex items-center">
                 <Briefcase className="h-6 w-6 text-PrimaryColor" />
-                <span className="text-lg">Partner Login</span>
+                <span className="text-lg">Connexion partenaire</span>
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-2" />
               </a>
             </Button>
 
-            <Button 
-              variant="ghost"
-              className="group h-14 px-12 border-2 border-PrimaryColor bg-AccentColor text-PrimaryColor
-                        hover:bg-secondary hover:text-PrimaryColor transition-all
-                        hover:scale-105 hover:shadow-lg"
-              asChild
-            >
-              <a href="/signup" className="space-x-4 flex items-center">
-                <Rocket className="h-6 w-6 text-PrimaryColor" />
-                <span className="text-lg">Join us</span>
-              </a>
-            </Button>
+        
           </div>
         </div>
 

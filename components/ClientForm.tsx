@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AnimatePresence, motion } from 'framer-motion';
-import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/context/AuthContext';
 
 export default function ClientForm({ isOpen, onClose, client, products, refreshClients }) {
@@ -86,19 +86,19 @@ export default function ClientForm({ isOpen, onClose, client, products, refreshC
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 full-viewport-overlay"
+
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-          >
+            className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-2xl max-h-[95vh] overflow-y-auto"         >
             <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">
-                  {client ? 'Edit Client' : 'New Client'}
+                  {client ? 'Modifier Client' : 'Nouveau Client'}
                 </h2>
                 <button
                   type="button"
@@ -113,7 +113,7 @@ export default function ClientForm({ isOpen, onClose, client, products, refreshC
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label>Name *</label>
+                  <label>Nom *</label>
                   <input
                     {...register('name', { required: true })}
                     className="w-full p-2 border rounded"
@@ -128,7 +128,7 @@ export default function ClientForm({ isOpen, onClose, client, products, refreshC
                   />
                 </div>
                 <div>
-                  <label>Phone</label>
+                  <label>Téléphone</label>
                   <input
                     {...register('phone')}
                     className="w-full p-2 border rounded"
@@ -144,7 +144,7 @@ export default function ClientForm({ isOpen, onClose, client, products, refreshC
               </div>
 
               <div className="border-t pt-4">
-                <h3 className="font-medium mb-4">Associated Products</h3>
+                <h3 className="font-medium mb-4">Produits associés</h3>
                 <div className="space-y-4">
                   {products.map(product => (
                     <div key={product._id} className="border p-4 rounded">
@@ -182,13 +182,13 @@ export default function ClientForm({ isOpen, onClose, client, products, refreshC
                   onClick={onClose}
                   className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded"
                 >
-                  Cancel
+                  Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-4 py-2 bg-primaryColor text-white rounded hover:bg-secondaryColor"
                 >
-                  {client ? 'Save' : 'Create'}
+                  {client ? 'Modifier' : 'Créer'}
                 </button>
               </div>
             </form>

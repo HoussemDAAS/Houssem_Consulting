@@ -98,13 +98,14 @@ export default function ClientBoard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 z-40"
+            className="fixed inset-0 bg-black/30 z-50 h-full"
             onClick={() => setSelectedClient(null)}
           >
-            <ClientDetailsSidebar
-              client={selectedClient}
-              onClose={() => setSelectedClient(null)}
-            />
+<ClientDetailsSidebar
+  client={selectedClient}
+  onClose={() => setSelectedClient(null)}
+  refreshClients={fetchClients} // Add this prop
+/>
           </motion.div>
         )}
       </AnimatePresence>

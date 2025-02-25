@@ -61,14 +61,14 @@ export default function ClientCard({ client, onClick }: {
           <div className="flex items-center gap-1.5">
             <PackageIcon className="h-4 w-4 text-blue-500" />
             <span className="font-medium text-gray-700 dark:text-gray-300">{totalProducts}</span>
-            <span className="text-gray-500">products</span>
+            <span className="text-gray-500">Categories</span>
           </div>
           
           {totalSubproducts > 0 && (
             <div className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-green-500" />
               <span className="font-medium text-gray-700 dark:text-gray-300">{totalSubproducts}</span>
-              <span className="text-gray-500">subproducts</span>
+              <span className="text-gray-500">produits</span>
             </div>
           )}
         </div>

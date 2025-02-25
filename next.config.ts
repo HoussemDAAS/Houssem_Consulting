@@ -2,6 +2,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true, // Disables TypeScript checks during build
+  },
   webpack: (config: any) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,

@@ -83,11 +83,11 @@ export default function LoginPage() {
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
-              Strategic Business Solutions
+            Solutions d’affaires stratégiques
             </h2>
           </div>
           <div className="grid grid-cols-3 gap-4 mt-8 max-w-xl mx-auto">
-  {['Strategy', 'Innovation', 'Growth', 'Analysis', 'Planning', 'Success'].map((value, index) => (
+  {['Stratégie', 'Innovation', 'Croissance', 'Analyse', 'Planification', 'Succès'].map((value, index) => (
     <div 
       key={value}
       className={`p-3 rounded-xl transition-all duration-300 ${
@@ -115,10 +115,10 @@ export default function LoginPage() {
         <Card className="w-full max-w-md p-8 space-y-6 shadow-2xl dark:shadow-gray-900/30">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              Welcome Back
+            Bienvenue
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Streamline your business management
+            Simplifiez la gestion de votre entreprise
             </p>
           </div>
 
@@ -136,7 +136,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
@@ -155,13 +155,13 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Signing In...' : 'Continue to Dashboard'}
+              {loading ? 'Se connecter...' : 'Continuer vers le tableau de bord'}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
 
             <div className="text-center text-sm">
   <p className="text-gray-500 dark:text-gray-400">
-    Admin portal - restricted access
+  Portail d’administration - accès restreint
   </p>
 </div>
           </form>

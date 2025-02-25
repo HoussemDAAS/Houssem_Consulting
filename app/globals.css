@@ -4,11 +4,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+html, body, #__next {
+  overflow-y: scroll;
+  overflow-y: visible !important;
+  overscroll-behavior-y: none;
+  height: 100%;
+  margin: 0;
+}
 body {
   font-family: 'Inter', sans-serif;
 }
 @layer utilities {
+ 
+    .full-viewport-overlay {
+      margin: 0 !important;
+      top: 0 !important;
+      height: 100dvh !important;
+    }
+  
   .animate-gradient-move {
     background-size: 200% 200%;
   }
@@ -156,6 +169,17 @@ body {
 @layer base {
   * {
     @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;

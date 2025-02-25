@@ -61,14 +61,14 @@ export default function ProductBoard() {
     <div className="p-6 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-          Product Management
+       Gestion des Categories
         </h1>
         <button
           onClick={() => { setSelectedProduct(null); setModalOpen(true); }}
           className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#ccbeac]/90"
         >
           <PlusIcon className="h-5 w-5" />
-          Add Product
+        Ajouter une categorie
         </button>
       </div>
 

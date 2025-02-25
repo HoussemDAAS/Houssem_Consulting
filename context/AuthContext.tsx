@@ -6,6 +6,7 @@ interface User {
   name: string;
   email: string;
   token: string;
+  role: string;
 }
 
 interface AuthContextType {
@@ -40,8 +41,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error('Auth verification failed:', error);
+      } finally {
+        setLoading(false); // Move to finally block
       }
-      setLoading(false);
     };
 
     verifyAuth();

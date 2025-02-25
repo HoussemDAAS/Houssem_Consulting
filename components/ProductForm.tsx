@@ -66,12 +66,13 @@ export default function ProductForm({ product, onClose, onSuccess }: ProductForm
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+ className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+
     >
       <motion.div
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
-        className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-2xl p-6"
+         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       >
         <h2 className="text-2xl font-bold mb-6">
           {product ? 'Edit Product' : 'New Product'}

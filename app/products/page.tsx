@@ -48,7 +48,7 @@ export default function ProductsPage() {
       {error ? (
         <div className="p-8 text-red-500">{error}</div>
       ) : (
-        <ProductBoard products={products} />
+        <ProductBoard/>
       )}
     </DashboardLayout>
   );

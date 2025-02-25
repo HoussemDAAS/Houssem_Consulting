@@ -13,8 +13,8 @@ export default function ProductDetailsSidebar({ product, onClose }: {
       initial={{ x: '100%' }}
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
-      className="fixed inset-y-0 right-0 w-full max-w-md bg-[#f9f9f4] dark:bg-[#0b0b0b] shadow-xl p-6 z-50 h-screen border-l border-[#ccbeac]"
-    >
+      className="fixed inset-0 left-auto w-full max-w-md bg-[#f9f9f4] dark:bg-[#0b0b0b] shadow-xl p-6 z-50 h-full border-l border-[#ccbeac]"
+      >
       <div className="flex justify-between items-center pb-6 border-b border-[#ccbeac]">
         <h2 className="text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">{product.name}</h2>
         <button 
@@ -27,7 +27,7 @@ export default function ProductDetailsSidebar({ product, onClose }: {
 
       <div className="pt-6 space-y-8 overflow-y-auto h-[calc(100vh-160px)]">
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Technical Details</h3>
+          <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Détails Techniques</h3>
           <div className="grid grid-cols-2 gap-4">
             {Object.entries(product).filter(([key]) => 
               !['_id', 'subProducts', 'autreInformation'].includes(key)
@@ -46,7 +46,7 @@ export default function ProductDetailsSidebar({ product, onClose }: {
 
         {product.autreInformation && (
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Additional Information</h3>
+            <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Autre Information</h3>
             <p className="text-[#0b0b0b] dark:text-[#f9f9f4] leading-relaxed">
               {product.autreInformation}
             </p>
@@ -55,7 +55,7 @@ export default function ProductDetailsSidebar({ product, onClose }: {
 
         {product.subProducts?.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Subproducts</h3>
+            <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">Produits</h3>
             <div className="space-y-3">
               {product.subProducts.map((sub, index) => (
                 <div 
