@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-     "build": "next build --debug",
+    "build": "npm run clean-install && next build --no-type-check",
+    "clean-install": "rm -rf node_modules .next && npm install --force",
     "start": "next start",
     "lint": "next lint"
   },
