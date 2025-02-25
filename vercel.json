@@ -1,8 +1,8 @@
 {
     "build": {
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
-          "NODE_OPTIONS": "--openssl-legacy-provider"
+        "NODE_OPTIONS": "--experimental-vm-modules",
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       }
     }
   }
