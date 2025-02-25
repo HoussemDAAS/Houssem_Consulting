@@ -1,19 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-ignore
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: true, // Disables TypeScript checks during build
+    ignoreBuildErrors: false, // Keep type checking enabled
   },
-  webpack: (config: any) => {
+  webpack: (config) => {
+    // Properly resolve the missing module
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "util-types": require.resolve("@types/node/package.json")
+    };
+
+    // Add fallbacks for Node.js core modules
     config.resolve.fallback = {
       ...config.resolve.fallback,
       "aws-sdk": false,
       "mock-aws-s3": false,
       nock: false,
-      "util/types": require.resolve("util-types")
+      "util/types": false
     };
+
     return config;
   }
 };
