@@ -84,7 +84,7 @@ export default function UserManagement() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Gestion des Utilisateurs</h2>
         <Button onClick={() => setShowForm(true)}>
-          Add User
+         Ajout utilisateur
         </Button>
       </div>
 

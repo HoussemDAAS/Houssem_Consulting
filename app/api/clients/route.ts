@@ -3,29 +3,44 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Client from '@/lib/models/Client';
 import jwt from 'jsonwebtoken';
-// app/api/clients/route.ts
 
 export async function GET(request: Request) {
   try {
-    // 1. Connect to the database
+    console.log('Connecting to database...');
     await dbConnect();
+    console.log('Database connected successfully');
 
-    // 2. Fetch clients and populate product names
+    const token = request.headers.get('Authorization')?.split(' ')[1];
+    console.log('Token:', token);
+
+    if (!token) {
+      console.error('No token provided');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    console.log('Verifying token...');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    console.log('Token verified successfully:', decoded);
+
+    console.log('Fetching clients...');
     const clients = await Client.find()
       .populate({
-        path: 'products.product', // Path to populate
-        model: 'Product', // Model to use for population
-        select: 'name', // Only fetch the 'name' field of the product
+        path: 'products.product',
+        model: 'Product',
+        select: 'name subProducts'
       })
       .lean();
 
-    // 3. Return the clients with populated product names
+    console.log('Clients fetched successfully');
     return NextResponse.json(clients, { status: 200 });
 
   } catch (error) {
     console.error('Error in /api/clients:', error);
 
-    // 4. Handle errors gracefully
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    }
+
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }

@@ -53,7 +53,7 @@ export default function Home() {
 
         {/* Interactive Core Values */}
         <div className="flex-1 grid grid-cols-2 gap-8 p-8">
-          {['Strategy', 'Innovation', 'Growth', 'Excellence'].map((value) => (
+          {['Stratégie', 'Innovation', 'Croissance', 'Excellence'].map((value) => (
             <div 
               key={value}
               className="aspect-square flex items-center justify-center p-6 
