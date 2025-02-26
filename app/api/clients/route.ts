@@ -7,11 +7,29 @@ import jwt from 'jsonwebtoken';
 
 export async function GET(request: Request) {
   try {
+    // 1. Connect to the database
     await dbConnect();
-    const clients = await Client.find().lean();
+
+    // 2. Fetch clients and populate product names
+    const clients = await Client.find()
+      .populate({
+        path: 'products.product', // Path to populate
+        model: 'Product', // Model to use for population
+        select: 'name', // Only fetch the 'name' field of the product
+      })
+      .lean();
+
+    // 3. Return the clients with populated product names
     return NextResponse.json(clients, { status: 200 });
+
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in /api/clients:', error);
+
+    // 4. Handle errors gracefully
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
