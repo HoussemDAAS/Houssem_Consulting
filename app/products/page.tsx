@@ -14,8 +14,9 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products', {
-          headers: { Authorization: `Bearer ${user?.token}` }
+        const response = await fetch(`/api/products?timestamp=${Date.now()}`, {
+          headers: { Authorization: `Bearer ${user?.token}` },
+          cache: 'no-store'
         });
         
         if (!response.ok) {
@@ -32,8 +33,9 @@ export default function ProductsPage() {
       }
     };
 
-    if (user) fetchProducts();
-  }, [user]);
+ 
+    if (user?.token) fetchProducts();
+  }, [user?.token]);
 
   if (loading) {
     return (

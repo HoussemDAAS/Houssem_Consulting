@@ -5,8 +5,18 @@ import { useForm } from 'react-hook-form';
 import { AnimatePresence, motion } from 'framer-motion';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/context/AuthContext';
+import { Client } from '@/types/client';
+import { ProductDocument } from '@/lib/models/Product';
 
-export default function ClientForm({ isOpen, onClose, client, products, refreshClients }) {
+interface ClientFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  client: Client; // Replace 'any' with the appropriate type if available
+  products: ProductDocument[]; // Replace 'any' with the appropriate type if available
+  refreshClients: () => void;
+}
+
+export default function ClientForm({ isOpen, onClose, client, products, refreshClients }: ClientFormProps) {
   const { user } = useAuth();
   const { register, handleSubmit, reset } = useForm();
   const [selectedProducts, setSelectedProducts] = useState({});

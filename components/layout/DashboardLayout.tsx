@@ -10,10 +10,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user?.token) { // Check for token specifically
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user?.token, loading, router]); 
 
   if (loading) {
     return <div className="min-h-screen bg-gray-50 dark:bg-gray-900"></div>;

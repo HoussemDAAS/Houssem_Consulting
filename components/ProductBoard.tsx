@@ -15,16 +15,18 @@ export default function ProductBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+useEffect(() => {
+  if (user?.token) { // More specific check
+ 
     fetchProducts();
-  }, []);
+  }
+}, [user?.token]);
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products', {
-        headers: {
-          Authorization: `Bearer ${user?.token}`
-        }
+      const res = await fetch('/api/products?timestamp=${Date.now()}', { // Add cache bust
+        headers: { Authorization: `Bearer ${user?.token}` },
+        cache: 'no-store' // Add this line
       });
       
       if (!res.ok) throw new Error('Failed to fetch products');

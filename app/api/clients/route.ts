@@ -12,7 +12,11 @@ export async function GET(request: Request) {
     
     jwt.verify(token, process.env.JWT_SECRET!);
     const clients = await Client.find().populate('products.product');
-    return NextResponse.json(clients);
+    return new NextResponse(JSON.stringify(clients), {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0'
+      }
+    });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Server error' },

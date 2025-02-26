@@ -14,7 +14,10 @@ export async function GET(request: Request) {
   try {
     jwt.verify(token, process.env.JWT_SECRET!);
     const products = await Product.find().lean();
-    return NextResponse.json(products);
+    return new NextResponse(JSON.stringify(products), {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0'
+      }  });
   } catch (error) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }

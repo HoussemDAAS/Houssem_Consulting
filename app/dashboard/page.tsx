@@ -42,8 +42,9 @@ export default function Dashboard() {
           >
             <ClientDetailsSidebar
               client={selectedClient!}
-              onClose={() => setSidebarOpen(false)}
-            />
+              onClose={() => setSidebarOpen(false)} refreshClients={function (): void {
+                throw new Error('Function not implemented.');
+              } }            />
           </motion.div>
         )}
       </AnimatePresence>
