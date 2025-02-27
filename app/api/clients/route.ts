@@ -6,23 +6,16 @@ import jwt from 'jsonwebtoken';
 
 export async function GET(request: Request) {
   try {
-    console.log('Connecting to database...');
     await dbConnect();
-    console.log('Database connected successfully');
 
+    // Verify JWT token first
     const token = request.headers.get('Authorization')?.split(' ')[1];
-    console.log('Token:', token);
-
     if (!token) {
-      console.error('No token provided');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    jwt.verify(token, process.env.JWT_SECRET!);
 
-    console.log('Verifying token...');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    console.log('Token verified successfully:', decoded);
-
-    console.log('Fetching clients...');
+    // Fetch clients with populated product data
     const clients = await Client.find()
       .populate({
         path: 'products.product',
@@ -31,21 +24,14 @@ export async function GET(request: Request) {
       })
       .lean();
 
-    console.log('Clients fetched successfully');
     return NextResponse.json(clients, { status: 200 });
 
   } catch (error) {
-    console.error('Error in /api/clients:', error);
-
-    if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
-    }
-
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Server error' },
+      { status: 500 }
+    );
   }
 }
 

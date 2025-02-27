@@ -46,12 +46,22 @@ export default function ClientBoard() {
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      fetchClients();
-      fetchProducts();
+// components/ClientBoard.tsx
+useEffect(() => {
+  const fetchInitialData = async () => {
+    if (user?.token) {
+      await fetchClients();
+      await fetchProducts();
     }
-  }, [user]);
+  };
+
+  // Add a small delay to ensure token is available
+  const timer = setTimeout(() => {
+    fetchInitialData();
+  }, 100);
+
+  return () => clearTimeout(timer);
+}, [user?.token]);
 
   if (loading) return <div className="p-8">Loading clients...</div>;
 
