@@ -8,13 +8,6 @@ export async function GET(request: Request) {
   try {
     await dbConnect();
 
-    // Verify JWT token first
-    const token = request.headers.get('Authorization')?.split(' ')[1];
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    jwt.verify(token, process.env.JWT_SECRET!);
-
     // Fetch clients with populated product data
     const clients = await Client.find()
       .populate({
@@ -34,6 +27,7 @@ export async function GET(request: Request) {
     );
   }
 }
+
 
 export async function POST(request: Request) {
   await dbConnect();
