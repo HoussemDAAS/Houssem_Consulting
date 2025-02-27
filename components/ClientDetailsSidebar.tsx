@@ -1,130 +1,67 @@
 // components/ClientDetailsSidebar.tsx
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Client } from '@/types/client';
-import { ProductDocument } from '@/lib/models/Product';
 import { motion } from 'framer-motion';
-import { TrashIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '@/context/AuthContext';
+import { TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 
-interface ClientProductWithDetails {
-  product: string | ProductDocument;
-  subProducts: string[];
-}
-
-export default function ClientDetailsSidebar({ client, onClose, refreshClients }: {
+export default function ClientDetailsSidebar({ 
+  client, 
+  onClose,
+  refreshClients
+}: {
   client: Client;
   onClose: () => void;
-  refreshClients : () => void;
+  refreshClients: () => void;
 }) {
-  const { user } = useAuth();
-  const [allProducts, setAllProducts] = useState<ProductDocument[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState<string>('');
-  const [selectedSubProducts, setSelectedSubProducts] = useState<string[]>([]);
-  const [clientProducts, setClientProducts] = useState<ClientProductWithDetails[]>(client.products || []);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch('/api/products', {
-          headers: { Authorization: `Bearer ${user?.token}` }
-        });
-        const data = await res.json();
-        setAllProducts(data);
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProducts();
-  }, [user]);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    characteristics: {} as Record<string, string>,
+    subProducts: [] as Array<{ 
+      name: string; 
+      specifications: string 
+    }>
+  });
 
   const handleAddProduct = async () => {
-    if (!selectedProductId) return;
-
     try {
-      const newProduct = {
-        product: selectedProductId,
-        subProducts: selectedSubProducts
-      };
-
-      // Optimistic update
-      setClientProducts(prev => [
-        ...prev,
-        {
-          ...newProduct,
-          product: allProducts.find(p => p._id === selectedProductId)!,
-        }
-      ]);
-
-      const res = await fetch(`/api/clients/${client._id}`, {
+      const response = await fetch(`/api/clients/${client._id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          products: [
-            ...clientProducts,
-            newProduct
-          ]
+          product: newProduct
         })
       });
 
-      if (!res.ok) throw new Error('Failed to update client');
+      if (!response.ok) throw new Error('Failed to add product');
       
-      const updatedClient = await res.json();
-      setClientProducts(updatedClient.products.map((p: ClientProductWithDetails) => ({
-        ...p,
-        product: allProducts.find(ap => ap._id === p.product) || p.product
-      })));
-      refreshClients(); 
-      setSelectedProductId('');
-     
-      setSelectedSubProducts([]);
+      refreshClients();
+      setNewProduct({
+        name: '',
+        characteristics: {},
+        subProducts: []
+      });
     } catch (error) {
       console.error('Error adding product:', error);
-      setClientProducts(clientProducts);
     }
   };
 
-  const handleRemoveProduct = async (productId: string) => {
+  const handleRemoveProduct = async (productIndex: number) => {
     try {
-      setClientProducts(prev => prev.filter(p => 
-        typeof p.product === 'object' 
-          ? p.product._id !== productId 
-          : p.product !== productId
-      ));
-
-      const res = await fetch(`/api/clients/${client._id}`, {
+      const updatedProducts = client.products
+        .filter((_, idx) => idx !== productIndex);
+      
+      const response = await fetch(`/api/clients/${client._id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user?.token}`
-        },
-        body: JSON.stringify({
-          products: clientProducts.filter(p => 
-            typeof p.product === 'object' 
-              ? p.product._id !== productId 
-              : p.product !== productId
-          )
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: updatedProducts })
       });
 
-      if (!res.ok) throw new Error('Failed to update client');
+      if (!response.ok) throw new Error('Failed to remove product');
       
-      const updatedClient = await res.json();
-      setClientProducts(updatedClient.products.map((p: ClientProductWithDetails) => ({
-        ...p,
-        product: allProducts.find(ap => ap._id === p.product) || p.product
-     } ),));
       refreshClients();
     } catch (error) {
       console.error('Error removing product:', error);
-      setClientProducts(clientProducts);
-      
     }
   };
 
@@ -133,130 +70,173 @@ export default function ClientDetailsSidebar({ client, onClose, refreshClients }
       initial={{ x: '100%' }}
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
-      className="fixed inset-0 left-auto w-full max-w-md bg-white dark:bg-gray-800 shadow-xl p-6 z-50 h-screen border-l border-gray-200 dark:border-gray-700"      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 left-auto w-full max-w-md bg-[#f9f9f4] shadow-xl p-6 z-50 h-screen border-l border-[#ccbeac]"
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="space-y-4">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Détails du client</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium text-gray-800 dark:text-gray-200">{client.email}</p>
-            </div>
-            {client.phone && (
-              <div>
-                <p className="text-sm text-gray-500">Téléphone</p>
-                <p className="font-medium text-gray-800 dark:text-gray-200">{client.phone}</p>
-              </div>
-            )}
-            {client.address && (
-              <div className="col-span-2">
-                <p className="text-sm text-gray-500">Address</p>
-                <p className="font-medium text-gray-800 dark:text-gray-200">{client.address}</p>
-              </div>
-            )}
-          </div>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-bold text-[#0b0b0b]">Client Details</h3>
+          <button 
+            onClick={onClose}
+            className="text-[#0b0b0b] hover:text-[#ccbeac]"
+          >
+            ✕
+          </button>
         </div>
 
-      {/* Product Selection */}
-      {!isLoading && (
-        <div className="space-y-4">
-          <select
-            value={selectedProductId}
-            onChange={(e) => {
-              const product = allProducts.find(p => p._id === e.target.value);
-              setSelectedProductId(e.target.value);
-              setSelectedSubProducts(product?.subProducts.map(sp => sp.name) || []);
-            }}
-            className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 bg-transparent"
-          >
-            <option value="">Choisir une categorie</option>
-            {allProducts.map(product => (
-              <option
-                key={product._id}
-                value={product._id}
-                disabled={clientProducts.some(p => 
-                  typeof p.product === 'object' 
-                    ? p.product._id === product._id 
-                    : p.product === product._id
-                )}
-              >
-                {product.name}
-              </option>
-            ))}
-          </select>
-
-          {selectedProductId && (
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                {allProducts.find(p => p._id === selectedProductId)?.subProducts.map((sub, index) => (
-                  <label key={index} className="flex items-center gap-2 p-2 border rounded">
-                    <input
-                      type="checkbox"
-                      checked={selectedSubProducts.includes(sub.name)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedSubProducts([...selectedSubProducts, sub.name]);
-                        } else {
-                          setSelectedSubProducts(selectedSubProducts.filter(n => n !== sub.name));
-                        }
-                      }}
-                    />
-                    <span>{sub.name}</span>
-                  </label>
-                ))}
-              </div>
-              <button
-                onClick={handleAddProduct}
-                className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-              >
-                Ajouter une categorie
-              </button>
+        <div className="space-y-2">
+          <div className="p-3 bg-[#ccbeac]/20 rounded-lg">
+            <p className="text-sm text-[#0b0b0b]/80">Email</p>
+            <p className="font-medium text-[#0b0b0b]">{client.email}</p>
+          </div>
+          
+          {client.phone && (
+            <div className="p-3 bg-[#ccbeac]/20 rounded-lg">
+              <p className="text-sm text-[#0b0b0b]/80">Phone</p>
+              <p className="font-medium text-[#0b0b0b]">{client.phone}</p>
             </div>
           )}
         </div>
-      )}
+      </div>
 
-      {/* Associated Products List */}
       <div className="mt-6 space-y-4">
-        {clientProducts.map((cp, index) => {
-          const product = typeof cp.product === 'object' ? cp.product : allProducts.find(p => p._id === cp.product);
+        <div className="border-t border-[#ccbeac] pt-4">
+          <h3 className="text-lg font-bold text-[#0b0b0b] mb-4">Add New Category</h3>
           
-          return (
-            <div key={index} className="p-4 border rounded relative">
-              <button
-                onClick={() => handleRemoveProduct(
-                  typeof cp.product === 'object' ? cp.product._id : cp.product
-                )}
-                className="absolute top-2 right-2 text-red-500"
-              >
-                <TrashIcon className="w-5 h-5" />
-              </button>
+          <div className="space-y-4">
+            <input
+              value={newProduct.name}
+              onChange={(e) => setNewProduct(p => ({ ...p, name: e.target.value }))}
+              placeholder="Category Name"
+              className="w-full p-3 rounded-lg border border-[#ccbeac] bg-transparent"
+            />
 
-              {product ? (
-                <>
-                  <h4 className="font-semibold">{product.name}</h4>
-                  {cp.subProducts.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">Produits sélectionnés:</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {cp.subProducts.map((sub, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 rounded"
-                          >
-                            {sub}
-                          </span>
-                        ))}
-                      </div>
+            <div className="space-y-2">
+              <h4 className="font-medium text-[#0b0b0b]">Characteristics</h4>
+              {Object.entries(newProduct.characteristics).map(([key], index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    value={key}
+                    onChange={(e) => {
+                      const updated = { ...newProduct.characteristics };
+                      const value = updated[key];
+                      delete updated[key];
+                      updated[e.target.value] = value;
+                      setNewProduct(p => ({ ...p, characteristics: updated }));
+                    }}
+                    placeholder="Characteristic name"
+                    className="flex-1 p-2 border border-[#ccbeac] rounded"
+                  />
+                  <input
+                    value={newProduct.characteristics[key]}
+                    onChange={(e) => setNewProduct(p => ({
+                      ...p,
+                      characteristics: { ...p.characteristics, [key]: e.target.value }
+                    }))}
+                    placeholder="Value"
+                    className="flex-1 p-2 border border-[#ccbeac] rounded"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={() => setNewProduct(p => ({
+                  ...p,
+                  characteristics: { ...p.characteristics, '': '' }
+                }))}
+                className="flex items-center gap-1 text-[#0b0b0b] hover:text-[#ccbeac]"
+              >
+                <PlusIcon className="w-4 h-4" />
+                Add Characteristic
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium text-[#0b0b0b]">Subproducts</h4>
+              {newProduct.subProducts.map((sub, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    value={sub.name}
+                    onChange={(e) => {
+                      const updated = [...newProduct.subProducts];
+                      updated[index].name = e.target.value;
+                      setNewProduct(p => ({ ...p, subProducts: updated }));
+                    }}
+                    placeholder="Subproduct name"
+                    className="flex-1 p-2 border border-[#ccbeac] rounded"
+                  />
+                  <input
+                    value={sub.specifications}
+                    onChange={(e) => {
+                      const updated = [...newProduct.subProducts];
+                      updated[index].specifications = e.target.value;
+                      setNewProduct(p => ({ ...p, subProducts: updated }));
+                    }}
+                    placeholder="Specifications"
+                    className="flex-1 p-2 border border-[#ccbeac] rounded"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={() => setNewProduct(p => ({
+                  ...p,
+                  subProducts: [...p.subProducts, { name: '', specifications: '' }]
+                }))}
+                className="flex items-center gap-1 text-[#0b0b0b] hover:text-[#ccbeac]"
+              >
+                <PlusIcon className="w-4 h-4" />
+                Add Subproduct
+              </button>
+            </div>
+
+            <button
+              onClick={handleAddProduct}
+              className="w-full bg-[#ccbeac] text-[#0b0b0b] p-3 rounded-lg hover:bg-[#ccbeac]/90 transition-colors"
+            >
+              Add Category
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-4">
+          {client.products.map((product, index) => (
+            <div key={index} className="p-4 bg-white rounded-lg shadow-sm border border-[#ccbeac]/30">
+              <div className="flex justify-between items-start">
+                <h4 className="font-bold text-lg text-[#0b0b0b]">{product.name}</h4>
+                <button
+                  onClick={() => handleRemoveProduct(index)}
+                  className="text-[#0b0b0b]/50 hover:text-[#ccbeac]"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {Object.entries(product.characteristics).length > 0 && (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {Object.entries(product.characteristics).map(([key, value], idx) => (
+                    <div key={idx} className="text-sm">
+                      <span className="text-[#0b0b0b]/70">{key}:</span>
+                      <span className="ml-2 text-[#0b0b0b]">{value}</span>
                     </div>
-                  )}
-                </>
-              ) : (
-                <span>Chargement du prouits ...</span>
+                  ))}
+                </div>
+              )}
+
+              {product.subProducts.length > 0 && (
+                <div className="mt-4 border-t border-[#ccbeac]/20 pt-4">
+                  <h5 className="font-medium text-[#0b0b0b] mb-2">Subproducts:</h5>
+                  <div className="space-y-2">
+                    {product.subProducts.map((sub, idx) => (
+                      <div key={idx} className="pl-3 border-l-2 border-[#ccbeac]">
+                        <p className="font-medium text-[#0b0b0b]">{sub.name}</p>
+                        <p className="text-sm text-[#0b0b0b]/70">{sub.specifications}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
     </motion.div>
   );

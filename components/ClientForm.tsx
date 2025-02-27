@@ -4,89 +4,45 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AnimatePresence, motion } from 'framer-motion';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '@/context/AuthContext';
 import { Client } from '@/types/client';
-import { ProductDocument } from '@/lib/models/Product';
 
 interface ClientFormProps {
   isOpen: boolean;
   onClose: () => void;
-  client: Client; // Replace 'any' with the appropriate type if available
-  products: ProductDocument[]; // Replace 'any' with the appropriate type if available
+  client?: Client;
   refreshClients: () => void;
 }
 
-export default function ClientForm({ isOpen, onClose, client, products, refreshClients }: ClientFormProps) {
-  const { user } = useAuth();
-  const { register, handleSubmit, reset } = useForm();
-  const [selectedProducts, setSelectedProducts] = useState({});
+export default function ClientForm({ isOpen, onClose, client, refreshClients }: ClientFormProps) {
+  const { register, handleSubmit, reset } = useForm<Client>();
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (client) {
       reset(client);
-      const initialProducts = client.products?.reduce((acc, curr) => {
-        acc[curr.product] = curr.subProducts;
-        return acc;
-      }, {});
-      setSelectedProducts(initialProducts || {});
     } else {
       reset({ status: 'active' });
-      setSelectedProducts({});
     }
   }, [client, reset]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: Client) => {
     try {
-      const payload = {
-        ...data,
-        products: Object.entries(selectedProducts)
-          .filter(([_, subs]) => subs.length > 0)
-          .map(([productId, subProducts]) => ({
-            product: productId,
-            subProducts
-          }))
-      };
-
-      const method = client ? 'PUT' : 'POST';
       const url = client ? `/api/clients/${client._id}` : '/api/clients';
+      const method = client ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`
-        },
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Operation failed');
-      }
-
+      if (!response.ok) throw new Error('Operation failed');
+      
       refreshClients();
-      onClose();
-    } catch (err) {
-      setError(err.message);
-      console.error('Submission error:', err);
+      onClose(); // Ensure form closes
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save client');
     }
-  };
-
-  const toggleProduct = (productId) => {
-    setSelectedProducts(prev => ({
-      ...prev,
-      [productId]: prev[productId] ? null : []
-    }));
-  };
-
-  const toggleSubProduct = (productId, subName) => {
-    setSelectedProducts(prev => ({
-      ...prev,
-      [productId]: prev[productId]?.includes(subName)
-        ? prev[productId].filter(name => name !== subName)
-        : [...(prev[productId] || []), subName]
-    }));
   };
 
   return (
@@ -96,16 +52,16 @@ export default function ClientForm({ isOpen, onClose, client, products, refreshC
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 full-viewport-overlay"
-
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
+            className="bg-white rounded-xl p-6 w-full max-w-2xl"
             onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-2xl max-h-[95vh] overflow-y-auto"         >
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+          >
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">
                   {client ? 'Modifier Client' : 'Nouveau Client'}
@@ -119,18 +75,18 @@ export default function ClientForm({ isOpen, onClose, client, products, refreshC
                 </button>
               </div>
 
-              {error && <div className="text-red-500 p-2 rounded bg-red-100">{error}</div>}
+              {error && <div className="text-red-500 p-2 bg-red-100 rounded">{error}</div>}
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label>Nom *</label>
+                  <label className="block mb-2">Nom *</label>
                   <input
                     {...register('name', { required: true })}
                     className="w-full p-2 border rounded"
                   />
                 </div>
                 <div>
-                  <label>Email *</label>
+                  <label className="block mb-2">Email *</label>
                   <input
                     type="email"
                     {...register('email', { required: true })}
@@ -138,51 +94,28 @@ export default function ClientForm({ isOpen, onClose, client, products, refreshC
                   />
                 </div>
                 <div>
-                  <label>Téléphone</label>
+                  <label className="block mb-2">Statut</label>
+                  <select
+                    {...register('status')}
+                    className="w-full p-2 border rounded"
+                  >
+                    <option value="active">Actif</option>
+                    <option value="inactive">Inactif</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-2">Téléphone</label>
                   <input
                     {...register('phone')}
                     className="w-full p-2 border rounded"
                   />
                 </div>
-                <div>
-                  <label>Address</label>
+                <div className="col-span-2">
+                  <label className="block mb-2">Adresse</label>
                   <input
                     {...register('address')}
                     className="w-full p-2 border rounded"
                   />
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="font-medium mb-4">Produits associés</h3>
-                <div className="space-y-4">
-                  {products.map(product => (
-                    <div key={product._id} className="border p-4 rounded">
-                      <div className="flex items-center gap-2 mb-2">
-                        <input
-                          type="checkbox"
-                          checked={!!selectedProducts[product._id]}
-                          onChange={() => toggleProduct(product._id)}
-                        />
-                        <span>{product.name}</span>
-                      </div>
-                      
-                      {selectedProducts[product._id] && (
-                        <div className="ml-4 space-y-2">
-                          {product.subProducts.map((sub, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={selectedProducts[product._id].includes(sub.name)}
-                                onChange={() => toggleSubProduct(product._id, sub.name)}
-                              />
-                              <span>{sub.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
                 </div>
               </div>
 

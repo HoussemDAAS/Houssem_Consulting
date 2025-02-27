@@ -3,19 +3,19 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: true, // Keep type checking enabled
+    ignoreBuildErrors: true, 
   },
   eslint: {
-    ignoreDuringBuilds: true, // Ignore all ESLint errors
+    ignoreDuringBuilds: true,
   },
   webpack: (config) => {
-    // Properly resolve the missing module
+  
     config.resolve.alias = {
       ...config.resolve.alias,
       "util-types": require.resolve("@types/node/package.json")
     };
 
-    // Add fallbacks for Node.js core modules
+   
     config.resolve.fallback = {
       ...config.resolve.fallback,
       "aws-sdk": false,

@@ -1,25 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// app/api/clients/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Client from '@/lib/models/Client';
-import jwt from 'jsonwebtoken';
 
 export async function GET(request: Request) {
   try {
     await dbConnect();
-
-    // Fetch clients with populated product data
-    const clients = await Client.find()
-      .populate({
-        path: 'products.product',
-        model: 'Product',
-        select: 'name subProducts'
-      })
-      .lean();
-
-    return NextResponse.json(clients, { status: 200 });
-
+    const clients = await Client.find().lean();
+    return NextResponse.json(clients, { 
+      status: 200,
+      headers: { 'Cache-Control': 'no-store, max-age=0' }
+    });
   } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(
@@ -29,14 +19,9 @@ export async function GET(request: Request) {
   }
 }
 
-
 export async function POST(request: Request) {
   await dbConnect();
   try {
-    const token = request.headers.get('Authorization')?.split(' ')[1];
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    jwt.verify(token, process.env.JWT_SECRET!);
     const body = await request.json();
     
     if (!body.name || !body.email) {
@@ -46,7 +31,12 @@ export async function POST(request: Request) {
       );
     }
     
-    const client = new Client(body);
+    const client = new Client({
+      ...body,
+      status: body.status || 'active',
+      products: body.products || []
+    });
+    
     await client.save();
     return NextResponse.json(client, { status: 201 });
   } catch (error) {

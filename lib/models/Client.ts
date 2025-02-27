@@ -1,26 +1,40 @@
-// lib/models/Client.ts
 import { Schema, model, models, Document } from 'mongoose';
-import { ProductDocument } from './Product';
+
+export interface ClientProduct {
+  name: string;
+  characteristics: Record<string, any>;
+  subProducts: Array<{
+    name: string;
+    specifications: Record<string, any>;
+  }>;
+}
 
 export interface ClientDocument extends Document {
   name: string;
   email: string;
-  address?: string;
+  status: 'active' | 'inactive';
   phone?: string;
-  products: {
-    product: ProductDocument['_id'];
-    subProducts: string[];
-  }[];
+  address?: string;
+  products: ClientProduct[];
 }
 
 const ClientSchema = new Schema<ClientDocument>({
   name: { type: String, required: true },
   email: { type: String, required: true },
-  address: String,
+  status: { 
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
+  },
   phone: String,
+  address: String,
   products: [{
-    product: { type: Schema.Types.ObjectId, ref: 'Product' },
-    subProducts: [String]
+    name: { type: String, required: true },
+    characteristics: Schema.Types.Mixed,
+    subProducts: [{
+      name: String,
+      specifications: Schema.Types.Mixed
+    }]
   }]
 });
 
