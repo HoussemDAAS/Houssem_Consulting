@@ -40,18 +40,25 @@ useEffect(() => {
       setLoading(false);
     }
   };
-
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`/api/products/${id}`, {
+      const response = await fetch(`/api/products/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${user?.token}`
         }
       });
-      fetchProducts();
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      // Refresh both products and clients after deletion
+      await Promise.all([fetchProducts()]);
+      
     } catch (error) {
       console.error('Delete failed:', error);
+      // Add user-facing error notification here
     }
   };
 

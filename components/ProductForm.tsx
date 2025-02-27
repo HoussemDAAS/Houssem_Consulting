@@ -37,22 +37,36 @@ export default function ProductForm({ product, onClose, onSuccess }: ProductForm
     try {
       const payload = {
         ...data,
-        subProducts,
+        // Ensure consistent subproduct format
+        subProducts: subProducts.map(sp => ({
+          name: sp.name.trim(),
+          specifications: sp.specifications.trim()
+        })),
         annee: Number(data.annee)
       };
-
+  
+      // Remove empty subproducts
+      const cleanSubProducts = payload.subProducts.filter(sp => 
+        sp.name.length > 0 && sp.specifications.length > 0
+      );
+  
+      const finalPayload = {
+        ...payload,
+        subProducts: cleanSubProducts
+      };
+  
       const url = product ? `/api/products/${product._id}` : '/api/products';
       const method = product ? 'PUT' : 'POST';
-
+  
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(finalPayload)
       });
-
+  
       if (!response.ok) throw new Error('Operation failed');
       onSuccess();
       onClose();
@@ -60,7 +74,6 @@ export default function ProductForm({ product, onClose, onSuccess }: ProductForm
       console.error('Error saving product:', error);
     }
   };
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
