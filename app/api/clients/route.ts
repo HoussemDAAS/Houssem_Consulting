@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // app/api/clients/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';

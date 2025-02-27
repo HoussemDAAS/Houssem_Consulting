@@ -24,12 +24,14 @@ export default function Dashboard() {
 
   const [selectedClient] = useState<Client | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const handleRefreshClients = () => {
+    setRefreshTrigger(prev => prev + 1); // Force ClientBoard refresh
+  };
 
   return (
     <DashboardLayout>
-      <ClientBoard   />
+      <ClientBoard   key={refreshTrigger} />
 
       <AnimatePresence>
         {sidebarOpen && (
@@ -42,9 +44,7 @@ export default function Dashboard() {
           >
             <ClientDetailsSidebar
               client={selectedClient!}
-              onClose={() => setSidebarOpen(false)} refreshClients={function (): void {
-                throw new Error('Function not implemented.');
-              } }            />
+              onClose={() => setSidebarOpen(false)}   refreshClients={handleRefreshClients}/>
           </motion.div>
         )}
       </AnimatePresence>
