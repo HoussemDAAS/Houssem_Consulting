@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProductBoard from '@/components/ProductBoard';
 
+
 export default function ProductsPage() {
   const { user } = useAuth();
-  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -20,27 +19,27 @@ export default function ProductsPage() {
         });
         
         if (!response.ok) {
-          throw new Error('Failed to fetch products');
+          throw new Error('Échec du chargement des catégories');
         }
 
         const data = await response.json();
-        setProducts(Array.isArray(data) ? data : []);
+        if (!Array.isArray(data)) {
+          throw new Error('Format de données invalide');
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load products');
-        setProducts([]);
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       } finally {
         setLoading(false);
       }
     };
 
- 
     if (user?.token) fetchProducts();
   }, [user?.token]);
 
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-8">Loading products...</div>
+        <div className="p-8 text-[#ccbeac]">Chargement en cours...</div>
       </DashboardLayout>
     );
   }

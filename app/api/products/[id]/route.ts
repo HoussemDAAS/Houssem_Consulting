@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
-
 import dbConnect from '@/lib/dbConnect';
 import Product from '@/lib/models/Product';
 import Client from '@/lib/models/Client';
@@ -11,32 +10,25 @@ export async function PUT(
 ) {
   try {
     await dbConnect();
-    
     const body = await request.json();
-    const existingProduct = await Product.findById(params.id).lean();
     
-    // Update the product first
+    if (!body.name?.trim()) {
+      return NextResponse.json(
+        { error: 'Le nom de la catégorie est obligatoire' },
+        { status: 400 }
+      );
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       params.id,
-      body,
+      { name: body.name.trim() },
       { new: true, runValidators: true }
     );
 
     if (!updatedProduct) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
-
-    // Find removed subproducts
-    const oldSubProducts = existingProduct.subProducts.map((sp: any) => sp.name);
-    const newSubProducts = body.subProducts.map((sp: any) => sp.name);
-    const removedSubs = oldSubProducts.filter((name: string) => !newSubProducts.includes(name));
-
-    // Remove references from clients
-    if (removedSubs.length > 0) {
-      await Client.updateMany(
-        { 'products.product': params.id },
-        { $pull: { 'products.$[elem].subProducts': { $in: removedSubs } } },
-        { arrayFilters: [{ 'elem.product': params.id }] }
+      return NextResponse.json(
+        { error: 'Catégorie non trouvée' },
+        { status: 404 }
       );
     }
 
@@ -44,8 +36,16 @@ export async function PUT(
 
   } catch (error) {
     console.error('Update error:', error);
+    
+    if ((error as any).code === 11000) {
+      return NextResponse.json(
+        { error: 'Cette catégorie existe déjà' },
+        { status: 409 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Update failed' },
+      { error: (error instanceof Error ? error.message : 'Erreur de mise à jour') },
       { status: 500 }
     );
   }
@@ -58,13 +58,15 @@ export async function DELETE(
   try {
     await dbConnect();
     
-    // First delete the product
     const deletedProduct = await Product.findByIdAndDelete(params.id);
     if (!deletedProduct) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Catégorie non trouvée' },
+        { status: 404 }
+      );
     }
 
-    // Then remove references from all clients
+    // Remove references from clients
     await Client.updateMany(
       { 'products.product': params.id },
       { $pull: { products: { product: params.id } } }
@@ -72,13 +74,13 @@ export async function DELETE(
 
     return NextResponse.json({ 
       success: true,
-      message: 'Product deleted and client references removed'
+      message: 'Catégorie supprimée avec succès'
     });
 
   } catch (error) {
     console.error('Deletion error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Deletion failed' },
+      { error: error instanceof Error ? error.message : 'Échec de la suppression' },
       { status: 500 }
     );
   }

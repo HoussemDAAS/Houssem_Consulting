@@ -1,17 +1,17 @@
+// components/ClientBoard.tsx
 'use client';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import ClientCard from './ClientCard';
-import ClientForm from './ClientForm';
+import AddClientCard from './AddClientCard';
+import ClientDetailsSidebar from './ClientDetailsSidebar';
 import { Client } from '@/types/client';
 import { motion } from 'framer-motion';
-import ClientDetailsSidebar from './ClientDetailsSidebar';
 
 export default function ClientBoard() {
   const { user } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchClients = async () => {
@@ -55,7 +55,7 @@ export default function ClientBoard() {
   if (loading) {
     return (
       <div className="p-8 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ccbeac]"></div>
       </div>
     );
   }
@@ -63,13 +63,7 @@ export default function ClientBoard() {
   return (
     <div className="space-y-8 p-6">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Client Management</h1>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Add New Client
-        </button>
+        <h1 className="text-2xl font-bold text-[#0b0b0b]">Gestion des Clients</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -80,18 +74,17 @@ export default function ClientBoard() {
             onClick={() => setSelectedClient(client)}
           />
         ))}
+        <AddClientCard 
+          onClick={() => {/* Open client creation modal */}}
+          status="active"
+        />
       </div>
-
-      <ClientForm
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        refreshClients={fetchClients} client={undefined} products={[]}      />
 
       {selectedClient && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/30 z-50"
+          className="fixed inset-0 bg-[#0b0b0b]/30 z-50"
           onClick={() => setSelectedClient(null)}
         >
           <ClientDetailsSidebar

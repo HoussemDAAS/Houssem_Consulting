@@ -1,34 +1,23 @@
 import { Schema, model, models, Document } from 'mongoose';
 
 export interface ProductDocument extends Document {
-  _id: string;
   name: string;
-  fabricant: string;
-  modele: string;
-  reference: string;
-  plageMesure: string;
-  annee: number;
-  versionLogiciel: string;
-  autreInformation?: string;
-  subProducts: Array<{
-    name: string;
-    specifications: string;
-  }>;
+  createdAt: Date;
 }
 
 const ProductSchema = new Schema<ProductDocument>({
-  name: { type: String, required: true },
-  fabricant: { type: String },
-  modele: { type: String },
-  reference: { type: String },
-  plageMesure: { type: String },
-  annee: { type: Number },
-  versionLogiciel: { type: String },
-  autreInformation: String,
-  subProducts: [{
-    name: String,
-    specifications: String
-  }]
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
+
+ProductSchema.index({ name: 1 }, { unique: true });
 
 export default models.Product || model<ProductDocument>('Product', ProductSchema);
