@@ -39,7 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            Tableau de bord
+            Gestion des clients
           </Link>
           
           <Link 

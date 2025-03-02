@@ -1,47 +1,164 @@
-// components/ClientForm.tsx
 'use client';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { AnimatePresence, motion } from 'framer-motion';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Client } from '@/types/client';
+import { XMarkIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import Select from 'react-select';
+import { ClientDocument } from '@/lib/models/Client';
+import { RegionDocument } from '@/lib/models/Region';
+import { ProductDocument } from '@/lib/models/Product';
 
 interface ClientFormProps {
   isOpen: boolean;
   onClose: () => void;
-  client?: Client;
+  client?: ClientDocument;
   refreshClients: () => void;
+  regions: RegionDocument[];
+  products: ProductDocument[];
 }
 
-export default function ClientForm({ isOpen, onClose, client, refreshClients }: ClientFormProps) {
-  const { register, handleSubmit, reset } = useForm<Client>();
-  const [error, setError] = useState('');
+type FormData = {
+  name: string;
+  region: string;
+  products: Array<{
+    product: string;
+    modele: string;
+    reference: string;
+    plageMesure: string;
+    annee: string;
+    versionLogiciel: string;
+    autreInformation: string;
+    details: Array<{ name: string; value: string }>;
+    addedAt: Date;
+  }>;
+};
+
+export default function ClientForm({
+  isOpen,
+  onClose,
+  client,
+  refreshClients,
+  regions,
+  products,
+}: ClientFormProps) {
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+    setValue,
+    getValues,
+    watch,
+  } = useForm<FormData>({
+    defaultValues: {
+      name: '',
+      region: '',
+      products: [],
+    },
+  });
+
+  const [showRegionForm, setShowRegionForm] = useState(false);
+  const [newRegion, setNewRegion] = useState({ name: '', code: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { fields: productFields, append: appendProduct, remove: removeProduct } = useFieldArray({
+    control,
+    name: 'products',
+  });
 
   useEffect(() => {
     if (client) {
-      reset(client);
-    } else {
-      reset({ status: 'active' });
+      reset({
+        name: client.name,
+        region: client.region._id.toString(),
+        products: client.products.map(p => ({
+          ...p,
+          product: (p.product as any)._id.toString(),
+          details: p.details || [],
+        })),
+      });
     }
   }, [client, reset]);
 
-  const onSubmit = async (data: Client) => {
+  const handleAddRegion = async () => {
+    try {
+      const response = await fetch('/api/regions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRegion),
+      });
+
+      if (!response.ok) throw new Error('Failed to create region');
+      
+      const createdRegion = await response.json();
+      setValue('region', createdRegion._id);
+      setShowRegionForm(false);
+      setNewRegion({ name: '', code: '' });
+      refreshClients();
+    } catch (error) {
+      console.error('Region creation error:', error);
+      alert('Failed to create region');
+    }
+  };
+
+  const handleAddDetail = (productIndex: number) => {
+    const currentDetails = getValues(`products.${productIndex}.details`) || [];
+    const newDetails = [...currentDetails, { name: '', value: '' }];
+    setValue(`products.${productIndex}.details`, newDetails);
+  };
+
+  const handleRemoveDetail = (productIndex: number, detailIndex: number) => {
+    const currentDetails = getValues(`products.${productIndex}.details`) || [];
+    const newDetails = currentDetails.filter((_, i) => i !== detailIndex);
+    setValue(`products.${productIndex}.details`, newDetails);
+  };
+
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
     try {
       const url = client ? `/api/clients/${client._id}` : '/api/clients';
       const method = client ? 'PUT' : 'POST';
 
+      const cleanedData = {
+        name: data.name,
+        region: data.region,
+        products: data.products.map(p => ({
+          product: p.product,
+          modele: p.modele,
+          reference: p.reference,
+          plageMesure: p.plageMesure,
+          annee: p.annee,
+          versionLogiciel: p.versionLogiciel,
+          autreInformation: p.autreInformation,
+          details: p.details
+            .filter(d => d.name.trim() && d.value.trim())
+            .map(d => ({
+              name: d.name.trim(),
+              value: d.value.trim()
+            })),
+          addedAt: p.addedAt || new Date()
+        })),
+      };
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(cleanedData),
       });
 
-      if (!response.ok) throw new Error('Operation failed');
-      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Operation failed');
+      }
+
       refreshClients();
-      onClose(); // Ensure form closes
+      onClose();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to save client');
+      console.error('Submission error:', error);
+      alert(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -58,80 +175,286 @@ export default function ClientForm({ isOpen, onClose, client, refreshClients }: 
           <motion.div
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
-            className="bg-white rounded-xl p-6 w-full max-w-2xl"
+            className="bg-white dark:bg-[#0b0b0b] rounded-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-[#ccbeac]"
             onClick={(e) => e.stopPropagation()}
           >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">
-                  {client ? 'Modifier Client' : 'Nouveau Client'}
+              <div className="flex justify-between items-center pb-4 border-b border-[#ccbeac]">
+                <h2 className="text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
+                  {client ? 'Edit Client' : 'New Client'}
                 </h2>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
 
-              {error && <div className="text-red-500 p-2 bg-red-100 rounded">{error}</div>}
-
               <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block mb-2">Nom *</label>
-                  <input
-                    {...register('name', { required: true })}
-                    className="w-full p-2 border rounded"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
+                      Client Name *
+                    </label>
+                    <input
+                      {...register('name', { required: 'Required field' })}
+                      className={`w-full p-3 rounded-lg border ${
+                        errors.name ? 'border-red-500' : 'border-[#ccbeac]'
+                      }`}
+                    />
+                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+                  </div>
                 </div>
-                <div>
-                  <label className="block mb-2">Email *</label>
-                  <input
-                    type="email"
-                    {...register('email', { required: true })}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2">Statut</label>
-                  <select
-                    {...register('status')}
-                    className="w-full p-2 border rounded"
-                  >
-                    <option value="active">Actif</option>
-                    <option value="inactive">Inactif</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-2">Téléphone</label>
-                  <input
-                    {...register('phone')}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="block mb-2">Adresse</label>
-                  <input
-                    {...register('address')}
-                    className="w-full p-2 border rounded"
-                  />
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
+                      Region *
+                    </label>
+                    <div className="flex gap-2">
+                      <Controller
+                        name="region"
+                        control={control}
+                        rules={{ required: 'Select a region' }}
+                        render={({ field }) => {
+                          const options = regions.map(r => ({
+                            value: r._id.toString(),
+                            label: `${r.name} (${r.code})`,
+                          }));
+                          return (
+                            <Select
+                              options={options}
+                              value={options.find(o => o.value === field.value)}
+                              onChange={(option) => field.onChange(option?.value || '')}
+                              className="flex-1"
+                              styles={{
+                                control: (base) => ({
+                                  ...base,
+                                  borderColor: errors.region ? '#ef4444' : '#ccbeac',
+                                  minHeight: '3rem',
+                                }),
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegionForm(!showRegionForm)}
+                        className="bg-[#ccbeac] text-[#0b0b0b] px-3 rounded-lg hover:bg-[#ccbeac]/90 transition-colors"
+                      >
+                        {showRegionForm ? '×' : '+'}
+                      </button>
+                    </div>
+                    {errors.region && <p className="text-red-500 text-sm mt-1">Region is required</p>}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-4">
+              {showRegionForm && (
+                <div className="p-4 bg-[#f9f9f4] dark:bg-[#1a1a1a] rounded-lg space-y-3">
+                  <div>
+                    <input
+                      placeholder="Region name"
+                      value={newRegion.name}
+                      onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
+                      className="w-full p-2 border border-[#ccbeac] rounded"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      placeholder="Region code (e.g., TN)"
+                      value={newRegion.code}
+                      onChange={(e) =>
+                        setNewRegion({
+                          ...newRegion,
+                          code: e.target.value.toUpperCase().slice(0, 5),
+                        })
+                      }
+                      className="w-full p-2 border border-[#ccbeac] rounded"
+                      maxLength={5}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddRegion}
+                    className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded hover:bg-[#ccbeac]/90"
+                  >
+                    Add Region
+                  </button>
+                </div>
+              )}
+
+              <div className="border-t border-[#ccbeac] pt-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
+                    Installed Products
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => appendProduct({
+                      product: '',
+                      modele: '',
+                      reference: '',
+                      plageMesure: '',
+                      annee: '',
+                      versionLogiciel: '',
+                      autreInformation: '',
+                      details: [],
+                      addedAt: new Date(),
+                    })}
+                    className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg hover:bg-[#ccbeac]/90"
+                  >
+                    Add Product
+                  </button>
+                </div>
+
+                {productFields.map((field, productIndex) => (
+                  <div key={field.id} className="mb-6 p-4 border border-[#ccbeac] rounded-lg">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
+                        Product {productIndex + 1}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => removeProduct(productIndex)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-[#ccbeac] mb-2">Product *</label>
+                        <Controller
+                          name={`products.${productIndex}.product`}
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field }) => {
+                            const options = products.map(p => ({
+                              value: p._id.toString(),
+                              label: p.name,
+                            }));
+                            return (
+                              <Select
+                                options={options}
+                                value={options.find(o => o.value === field.value)}
+                                onChange={(option) => field.onChange(option?.value || '')}
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                styles={{
+                                  control: (base) => ({
+                                    ...base,
+                                    borderColor: '#ccbeac',
+                                    minHeight: '2.5rem',
+                                  }),
+                                }}
+                              />
+                            );
+                          }}
+                        />
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Model</label>
+                          <input
+                            {...register(`products.${productIndex}.modele`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Reference</label>
+                          <input
+                            {...register(`products.${productIndex}.reference`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-[#ccbeac] mb-2">
+                            Measurement Range
+                          </label>
+                          <input
+                            {...register(`products.${productIndex}.plageMesure`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Year</label>
+                          <input
+                            type="number"
+                            {...register(`products.${productIndex}.annee`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-[#ccbeac] mb-2">
+                            Software Version
+                          </label>
+                          <input
+                            {...register(`products.${productIndex}.versionLogiciel`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-span-2">
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-sm text-[#ccbeac]">Additional Details</label>
+                          <button
+                            type="button"
+                            onClick={() => handleAddDetail(productIndex)}
+                            className="text-[#ccbeac] hover:text-[#0b0b0b] dark:hover:text-[#f9f9f4]"
+                          >
+                            <PlusCircleIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                        {watch(`products.${productIndex}.details`)?.map((_, detailIndex) => (
+                          <div key={detailIndex} className="flex gap-2 mb-2">
+                            <input
+                              {...register(`products.${productIndex}.details.${detailIndex}.name`)}
+                              placeholder="Detail name"
+                              className="flex-1 p-2 border rounded"
+                            />
+                            <input
+                              {...register(`products.${productIndex}.details.${detailIndex}.value`)}
+                              placeholder="Detail value"
+                              className="flex-1 p-2 border rounded"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveDetail(productIndex, detailIndex)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-4 pt-6 border-t border-[#ccbeac]">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded"
+                  className="px-6 py-2 text-[#0b0b0b] dark:text-[#ccbeac] hover:bg-[#ccbeac]/10 rounded-lg transition-colors"
                 >
-                  Annuler
+                  Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primaryColor text-white rounded hover:bg-secondaryColor"
+                  disabled={isSubmitting}
+                  className={`px-6 py-2 bg-[#ccbeac] text-[#0b0b0b] rounded-lg transition-colors font-medium ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#ccbeac]/90'
+                  }`}
                 >
-                  {client ? 'Modifier' : 'Créer'}
+                  {isSubmitting ? 'Processing...' : client ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>

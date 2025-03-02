@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Region from '@/lib/models/Region';
 
+// app/api/regions/route.ts
+
+
 export async function GET() {
   await dbConnect();
   try {
@@ -20,26 +23,10 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    // Validate required fields
     if (!body.name || !body.code) {
       return NextResponse.json(
         { error: 'Name and code are required' },
         { status: 400 }
-      );
-    }
-
-    // Check for existing region
-    const existingRegion = await Region.findOne({
-      $or: [
-        { name: body.name },
-        { code: body.code.toUpperCase() }
-      ]
-    });
-
-    if (existingRegion) {
-      return NextResponse.json(
-        { error: 'Region with this name or code already exists' },
-        { status: 409 }
       );
     }
 
@@ -50,12 +37,11 @@ export async function POST(request: Request) {
 
     await newRegion.save();
     return NextResponse.json(newRegion, { status: 201 });
-
-  } catch (error) {
-    console.error('Region creation error:', error);
+  } catch {
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }
 }
+

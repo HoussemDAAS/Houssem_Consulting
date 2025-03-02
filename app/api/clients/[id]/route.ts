@@ -10,12 +10,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     
     const updatedClient = await Client.findByIdAndUpdate(
       params.id,
-      { $push: { products: body.product } },
+      { $set: body },
       { 
         new: true,
         runValidators: true
       }
-    ).lean();
+    ).populate('region products.product');
 
     if (!updatedClient) throw new Error('Client not found');
     
@@ -34,8 +34,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   try {
     await Client.findByIdAndDelete(params.id);
     return NextResponse.json({ success: true });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Deletion failed' }, { status: 500 });
   }
 }
