@@ -66,9 +66,9 @@ export async function POST(request: Request) {
     const client = new Client({
       name: body.name,
       region: body.region,
+      email: null, // Explicitly set to null
       products: transformedProducts
     });
-
     await client.save();
     return NextResponse.json(
       await Client.populate(client, [

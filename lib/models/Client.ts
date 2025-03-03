@@ -35,9 +35,12 @@ const ClientSchema = new Schema<ClientDocument>({
     index: false 
   },
   email: { 
-    type: String, 
-    required: false,
-    index: false 
+    type: String,
+    index: {
+      unique: true,
+      partialFilterExpression: { email: { $type: 'string' } }
+    },
+    default: null
   },
   products: [{
     product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
