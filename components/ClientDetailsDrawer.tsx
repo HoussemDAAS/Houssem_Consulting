@@ -74,14 +74,13 @@ export default function ClientDetailsDrawer({
 
             <div className="space-y-6">
               {client.products.map((product, index) => {
-           const productId = typeof product.product === 'string' 
-           ? product.product 
-           : product.product?._id.toString();
-         
-         // Find in products array or use populated data
-         const productData = products.find(p => p._id.toString() === productId) 
-           || product.product;
+                const productId = typeof product.product === 'string' 
+                  ? product.product 
+                  : product.product?._id.toString();
                 
+                const productData = products.find(p => p._id.toString() === productId) 
+                  || product.product;
+
                 return (
                   <div key={index} className="group bg-white dark:bg-[#0b0b0b] p-5 rounded-lg border border-[#eee] dark:border-[#333] hover:border-[#ccbeac] transition-colors">
                     <div className="flex justify-between items-start mb-4">
@@ -91,7 +90,7 @@ export default function ClientDetailsDrawer({
                         </div>
                         <div>
                           <h4 className="text-lg font-medium text-[#2d2d2d] dark:text-[#f0f0f0]">
-                          {productData?.name || 'Produit Non Reconnu'}
+                            {productData?.name || 'Produit Non Reconnu'}
                           </h4>
                           <div className="flex items-center gap-2 text-sm text-[#666] dark:text-[#999]">
                             <CalendarIcon className="h-4 w-4" />
@@ -116,16 +115,16 @@ export default function ClientDetailsDrawer({
                       <DetailItem label="Informations Additionnelles" value={product.autreInformation} />
                     </div>
 
-                    {product.subProducts.length > 0 && (
+                    {/* New details section */}
+                    {product.details && product.details.length > 0 && (
                       <div className="mt-6 pt-4 border-t border-[#eee] dark:border-[#333]">
                         <h5 className="text-sm font-semibold mb-3 text-[#2d2d2d] dark:text-[#f0f0f0]">
-                          Sous-produits ({product.subProducts.length})
+                          Détails Supplémentaires ({product.details.length})
                         </h5>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {product.subProducts.map((sub, subIndex) => (
-                            <div key={subIndex} className="bg-[#f5f5f5] dark:bg-[#1a1a1a] p-3 rounded-lg">
-                              <DetailItem label="Nom" value={sub.name} />
-                              <DetailItem label="Spécifications" value={sub.specifications} />
+                          {product.details.map((detail, detailIndex) => (
+                            <div key={detailIndex} className="bg-[#f5f5f5] dark:bg-[#1a1a1a] p-3 rounded-lg">
+                              <DetailItem label={detail.name} value={detail.value} />
                             </div>
                           ))}
                         </div>

@@ -9,7 +9,7 @@ import ClientDetailsDrawer from './ClientDetailsDrawer';
 import ClientForm from './ClientForm';
 import { Skeleton } from './ui/Skeleton';
 import { PlusIcon } from '@heroicons/react/24/outline';
-
+import Select from 'react-select';
 export default function ClientBoard() {
   const { user } = useAuth();
   const [clients, setClients] = useState<ClientDocument[]>([]);
@@ -21,6 +21,8 @@ export default function ClientBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingClient, setEditingClient] = useState<ClientDocument | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const fetchData = async () => {
     try {
       const [clientsRes, regionsRes, productsRes] = await Promise.all([
@@ -60,30 +62,37 @@ export default function ClientBoard() {
     if (user?.token) fetchData();
   }, [user?.token]);
 
+  const filteredClients = clients.filter(client => {
+    const regionId = client.region?._id?.toString();
+    const regionMatch = !selectedRegion || regionId === selectedRegion;
+  
+    const productMatch = !selectedProduct || 
+      client.products.some(p => {
+        const productId = p.product?._id?.toString();
+        return productId === selectedProduct;
+      });
+  
+    return regionMatch && productMatch;
+  });
   const groupClientsByRegion = () => {
     const grouped = new Map<string, ClientDocument[]>();
   
-    // Initialize with all regions (including empty ones)
+    // Initialize groups with all regions (including empty ones)
     regions.forEach(region => {
       grouped.set(region._id.toString(), []);
     });
   
-
-    clients.forEach(client => {
-
-      const regionId = client.region 
-        ? (typeof client.region === 'object' 
-           ? client.region._id.toString() 
-           : String(client.region))
-        : null;
-  
-      if (regionId && grouped.has(regionId)) {
+    // Add filtered clients to their respective regions
+    filteredClients.forEach(client => {
+      const regionId = client.region._id.toString();
+      if (grouped.has(regionId)) {
         grouped.get(regionId)?.push(client);
       }
     });
   
     return Array.from(grouped.entries());
   };
+
   const handleEditClient = () => {
     setEditingClient(selectedClient);
     setSelectedClient(null); // Close drawer
@@ -121,10 +130,34 @@ export default function ClientBoard() {
 
   return (
     <div className="p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-          Client Management
-        </h1>
+    <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+      <h1 className="text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
+        Client Management
+      </h1>
+      
+      <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+        <Select
+          options={regions.map(r => ({
+            value: r._id.toString(),
+            label: `${r.name} (${r.code})`
+          }))}
+          placeholder="Filter by Region"
+          isClearable
+          onChange={(option) => setSelectedRegion(option?.value || null)}
+          className="min-w-[200px]"
+        />
+
+        <Select
+          options={products.map(p => ({
+            value: p._id.toString(),
+            label: p.name
+          }))}
+          placeholder="Filter by Product"
+          isClearable
+          onChange={(option) => setSelectedProduct(option?.value || null)}
+          className="min-w-[200px]"
+        />
+
         <button
           onClick={() => setShowCreateForm(true)}
           className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2"
@@ -133,6 +166,7 @@ export default function ClientBoard() {
           Add Client
         </button>
       </div>
+    </div>
 
       {/* Create Client Form */}
       <ClientForm
@@ -175,6 +209,7 @@ export default function ClientBoard() {
           region={regions.find(r => r._id.toString() === regionId)!}
           clients={regionClients}
           regions={regions}
+          products={products}
           onSelectClient={setSelectedClient}
         />
       ))}

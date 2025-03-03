@@ -75,7 +75,8 @@ export default function ClientForm({
         products: client.products.map(p => ({
           ...p,
           product: (p.product as any)._id.toString(),
-          details: p.details || [],
+          // Convert legacy subProducts to details
+          details: p.details?.length ? p.details : p.subProducts || []
         })),
       });
     }

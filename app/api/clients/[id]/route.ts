@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/clients/[id]/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
@@ -8,9 +9,30 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   try {
     const body = await request.json();
     
+    // Add proper product transformation
+    const transformedProducts = body.products?.map((p: any) => ({
+      product: p.product,
+      modele: p.modele || '',
+      reference: p.reference || '',
+      plageMesure: p.plageMesure || '',
+      annee: p.annee || '',
+      versionLogiciel: p.versionLogiciel || '',
+      autreInformation: p.autreInformation || '',
+      details: (p.details || []).map((d: any) => ({
+        name: d.name?.trim() || '',
+        value: d.value?.trim() || ''
+      })),
+      addedAt: p.addedAt || new Date()
+    }));
+
     const updatedClient = await Client.findByIdAndUpdate(
       params.id,
-      { $set: body },
+      { 
+        $set: {
+          ...body,
+          products: transformedProducts 
+        }
+      },
       { 
         new: true,
         runValidators: true
@@ -28,7 +50,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     );
   }
 }
-
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   await dbConnect();
   try {
