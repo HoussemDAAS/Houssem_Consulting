@@ -18,25 +18,27 @@ export default function ProductBoard() {
 
 
 
-  const fetchProducts = async () => {
-    try {
-      const res = await fetch(`/api/products?timestamp=${Date.now()}`, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-        cache: 'no-store'
-      });
-      
-      if (!res.ok) throw new Error('Échec du chargement des catégories');
-      
-      const data = await res.json();
-      setProducts(Array.isArray(data) ? data : []);
-      setError('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-      toast.error('Erreur de chargement des catégories');
-    } finally {
-      setLoading(false);
-    }
-  };
+ // components/ProductBoard.tsx
+const fetchProducts = async () => {
+  try {
+    const res = await fetch(`/api/products?timestamp=${Date.now()}`, {
+      headers: { Authorization: `Bearer ${user?.token}` },
+      cache: 'no-store'
+    });
+    
+    if (!res.ok) throw new Error('Failed to load products');
+    
+    const data = await res.json();
+    setProducts(Array.isArray(data) ? data : []);
+    setError('');
+  } catch (err) {
+    console.error('Fetch error:', err);
+    setError(err instanceof Error ? err.message : 'An error occurred');
+    toast.error('Error loading products');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleDelete = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;

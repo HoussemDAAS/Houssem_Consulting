@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// app/api/products/[id]/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Product from '@/lib/models/Product';
@@ -14,23 +15,31 @@ export async function PUT(
     
     if (!body.name?.trim()) {
       return NextResponse.json(
-        { error: 'Le nom de la catégorie est obligatoire' },
+        { error: 'Product name is required' },
         { status: 400 }
       );
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      params.id,
-      { name: body.name.trim() },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedProduct) {
+    // Handle legacy documents by merging existing data
+    const existingProduct = await Product.findById(params.id);
+    if (!existingProduct) {
       return NextResponse.json(
-        { error: 'Catégorie non trouvée' },
+        { error: 'Product not found' },
         { status: 404 }
       );
     }
+
+    const updateData = {
+      name: body.name.trim(),
+      image: body.image || existingProduct.image || '',
+      // Add other fields here if needed
+    };
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
 
     return NextResponse.json(updatedProduct);
 
@@ -39,13 +48,13 @@ export async function PUT(
     
     if ((error as any).code === 11000) {
       return NextResponse.json(
-        { error: 'Cette catégorie existe déjà' },
+        { error: 'Product already exists' },
         { status: 409 }
       );
     }
     
     return NextResponse.json(
-      { error: (error instanceof Error ? error.message : 'Erreur de mise à jour') },
+      { error: (error instanceof Error ? error.message : 'Update failed') },
       { status: 500 }
     );
   }

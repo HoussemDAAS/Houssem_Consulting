@@ -34,41 +34,31 @@ export async function GET(request: Request) {
   }
 }
 
+// app/api/clients/route.ts
 export async function POST(request: Request) {
   await dbConnect();
   try {
     const body = await request.json();
     
-    if (!body.name || !body.region) {
-      return NextResponse.json(
-        { error: 'Name and region are required' },
-        { status: 400 }
-      );
-    }
-
     const transformedProducts = body.products?.map((p: any) => ({
       product: p.product,
+      fabriquant: p.fabriquant || '', // Keep this
       modele: p.modele || '',
       reference: p.reference || '',
       plageMesure: p.plageMesure || '',
       annee: p.annee || '',
       versionLogiciel: p.versionLogiciel || '',
       autreInformation: p.autreInformation || '',
-      details: (p.details || [])
-        .filter((d: any) => d.name?.trim() && d.value?.trim())
-        .map((d: any) => ({
-          name: d.name.trim(),
-          value: d.value.trim()
-        })),
+      // Remove the details field completely
       addedAt: p.addedAt || new Date()
     }));
 
     const client = new Client({
       name: body.name,
       region: body.region,
-      email: null, // Explicitly set to null
       products: transformedProducts
     });
+    
     await client.save();
     return NextResponse.json(
       await Client.populate(client, [

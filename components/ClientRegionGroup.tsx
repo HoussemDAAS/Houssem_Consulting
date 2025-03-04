@@ -78,10 +78,13 @@ const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete 
                   <tr className="border-b border-[#ccbeac]/30">
                     <th className="text-left py-2"></th>
                     <th className="text-left py-2 text-secondaryColor">Modèle</th>
+                    <th className="text-left py-2 text-secondaryColor">Fabriquant</th>
                     <th className="text-left py-2 text-secondaryColor">Référence</th>
                     <th className="text-left py-2 text-secondaryColor">Plage Mesure</th>
                     <th className="text-left py-2 text-secondaryColor">Année</th>
-                    <th className="text-left py-2 text-secondaryColor">Version Logiciel</th>
+                    <th className="text-left py-2 text-secondaryColor">Logiciel</th>
+                    <th className="text-left py-2 text-secondaryColor">Autre Information</th>
+
                   </tr>
                 </thead>
                 <tbody>
@@ -91,10 +94,12 @@ const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete 
                         {p.product?.name || 'Product Not Found'}
                       </td>
                       <td className="py-2">{p.modele || '-'}</td>
+                      <td>{p.fabriquant || '-'}</td>
                       <td className="py-2">{p.reference || '-'}</td>
                       <td className="py-2">{p.plageMesure || '-'}</td>
                       <td className="py-2">{p.annee || '-'}</td>
                       <td className="py-2">{p.versionLogiciel || '-'}</td>
+                      <td>{p.autreInformation || '-'}</td>
                     </tr>
                   ))}
                 </tbody>

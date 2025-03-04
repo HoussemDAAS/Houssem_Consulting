@@ -4,24 +4,22 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Client from '@/lib/models/Client';
 
+// app/api/clients/[id]/route.ts
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   await dbConnect();
   try {
     const body = await request.json();
     
-    // Add proper product transformation
     const transformedProducts = body.products?.map((p: any) => ({
       product: p.product,
+      fabriquant: p.fabriquant || '', // Keep this
       modele: p.modele || '',
       reference: p.reference || '',
       plageMesure: p.plageMesure || '',
       annee: p.annee || '',
       versionLogiciel: p.versionLogiciel || '',
       autreInformation: p.autreInformation || '',
-      details: (p.details || []).map((d: any) => ({
-        name: d.name?.trim() || '',
-        value: d.value?.trim() || ''
-      })),
+      // Remove the details field completely
       addedAt: p.addedAt || new Date()
     }));
 
@@ -39,8 +37,6 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       }
     ).populate('region products.product');
 
-    if (!updatedClient) throw new Error('Client not found');
-    
     return NextResponse.json(updatedClient);
   } catch (error) {
     console.error('Update error:', error);

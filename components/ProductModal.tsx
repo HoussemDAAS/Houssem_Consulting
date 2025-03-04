@@ -1,164 +1,184 @@
-// components/ProductModal.tsx
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { Dialog } from '@headlessui/react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight, Package, Pencil, Trash } from 'lucide-react';
+import { ClientDocument } from '@/lib/models/Client';
 import { ProductDocument } from '@/lib/models/Product';
-import { motion } from 'framer-motion';
-import { XMarkIcon } from '@heroicons/react/24/solid';
-import { PhotoIcon } from '@heroicons/react/24/outline';
+import { RegionDocument } from '@/lib/models/Region';
 
-export default function ProductModal({
-  isOpen,
-  onClose,
-  product,
-  refreshProducts,
-}: {
+interface ClientAccordionProps {
+  client: ClientDocument;
+  products: ProductDocument[];
   isOpen: boolean;
-  onClose: () => void;
-  product?: ProductDocument | null;
-  refreshProducts: () => void;
-}) {
-  const [name, setName] = useState(product?.name || '');
-  const [image, setImage] = useState(product?.image || '');
-  const [preview, setPreview] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(file);
-
-    // Upload file
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        setImage(result.filename);
-      }
-    } catch (error) {
-      console.error('Upload failed:', error);
-    }
+const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete }: ClientAccordionProps) => {
+  // Handle legacy documents with missing fields
+  const getProductField = (product: any, field: string) => {
+    // Handle both populated and unpopulated products
+    const productData = product.product?.name ? product.product : products.find(p => p._id === product.product);
+    
+    return {
+      fabriquant: product.fabriquant || '-',
+      modele: product.modele || '-',
+      reference: product.reference || '-',
+      plageMesure: product.plageMesure || '-',
+      annee: product.annee || '-',
+      versionLogiciel: product.versionLogiciel || '-',
+      productName: productData?.name || 'Unknown Product'
+    }[field];
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const url = product?._id ? `/api/products/${product._id}` : '/api/products';
-    const method = product?._id ? 'PUT' : 'POST';
-
-    try {
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, image }),
-      });
-
-      if (!response.ok) throw new Error('Failed to save product');
-      refreshProducts();
-      onClose();
-    } catch (error) {
-      console.error('Error saving product:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (product) {
-      setName(product.name);
-      setImage(product.image || '');
-      setPreview(product.image || null);
-    } else {
-      setName('');
-      setImage('');
-      setPreview(null);
-    }
-  }, [product]);
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black/30" />
+    <div className="border-b border-[#ccbeac]/30">
+      <div className="flex items-center p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]">
+        <button onClick={onToggle} className="flex items-center justify-center w-8 h-8 mr-2">
+          <ChevronRight className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+        </button>
 
-        <motion.div
-          initial={{ scale: 0.95 }}
-          animate={{ scale: 1 }}
-          className="relative bg-white dark:bg-[#0b0b0b] rounded-xl p-6 w-full max-w-md border border-[#ccbeac]"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-              {product ? 'Edit Product' : 'New Product'}
-            </h2>
-            <button onClick={onClose} className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75">
-              <XMarkIcon className="h-6 w-6" />
+        <div className="flex-1 flex items-center gap-4">
+          <button onClick={onEdit} className="text-left flex-1 flex items-center gap-4 group">
+            <h3 className="text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
+              {client.name}
+            </h3>
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-[#ccbeac]" />
+              <span className="text-sm text-[#666] dark:text-[#999]">
+                ({client.products.length} products)
+              </span>
+            </div>
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <button onClick={onEdit} className="p-2 hover:bg-[#ccbeac]/20 rounded-full">
+              <Pencil className="h-5 w-5 text-[#ccbeac]" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm('Are you sure you want to delete this client?')) {
+                  onDelete();
+                }
+              }}
+              className="p-2 hover:bg-red-100/50 rounded-full transition-colors"
+            >
+              <Trash className="h-5 w-5 text-red-500" />
             </button>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac] mb-2">
-                Product Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-[#ccbeac] focus:ring-2 focus:ring-[#ccbeac] focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div className="space-y-4">
-              <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
-                Product Image
-              </label>
-              
-              <div 
-                className="relative aspect-square bg-white rounded-lg overflow-hidden border-2 border-dashed border-[#ccbeac] cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {preview ? (
-                  <img src={preview} alt="Preview" className="w-full h-full object-contain p-4" />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-[#ccbeac]">
-                    <PhotoIcon className="w-12 h-12 mb-2" />
-                    <span className="text-sm">Click to upload image</span>
-                  </div>
-                )}
-              </div>
-              
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {loading ? 'Saving...' : 'Save Product'}
-            </button>
-          </form>
-        </motion.div>
+        </div>
       </div>
-    </Dialog>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 ml-10">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#ccbeac]/30">
+                    <th className="text-left py-2"></th>
+                    <th className="text-left py-2 text-secondaryColor">Fabriquant</th>
+                    <th className="text-left py-2 text-secondaryColor">Modèle</th>
+                    <th className="text-left py-2 text-secondaryColor">Référence</th>
+                    <th className="text-left py-2 text-secondaryColor">Plage Mesure</th>
+                    <th className="text-left py-2 text-secondaryColor">Année</th>
+                    <th className="text-left py-2 text-secondaryColor">Version Logiciel</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {client.products.map((p, index) => (
+                    <tr key={index} className="border-b border-[#ccbeac]/10">
+                      <td className="py-2 font-medium">
+                        {getProductField(p, 'productName')}
+                      </td>
+                      <td className="py-2">{getProductField(p, 'fabriquant')}</td>
+                      <td className="py-2">{getProductField(p, 'modele')}</td>
+                      <td className="py-2">{getProductField(p, 'reference')}</td>
+                      <td className="py-2">{getProductField(p, 'plageMesure')}</td>
+                      <td className="py-2">{getProductField(p, 'annee')}</td>
+                      <td className="py-2">{getProductField(p, 'versionLogiciel')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+interface ClientRegionGroupProps {
+  region: RegionDocument;
+  clients: ClientDocument[];
+  regions: RegionDocument[];
+  products: ProductDocument[];
+  onEditClient: (client: ClientDocument) => void;
+  onDeleteClient: (clientId: string) => void;
+}
+
+export default function ClientRegionGroup({
+  region,
+  clients,
+  regions,
+  products,
+  onEditClient,
+  onDeleteClient
+}: ClientRegionGroupProps) {
+  const [expandedClient, setExpandedClient] = useState<string | null>(null);
+
+  const handleToggle = (clientId: string) => {
+    setExpandedClient(prev => prev === clientId ? null : clientId);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white dark:bg-[#1a1a1a] rounded-lg shadow-sm border border-[#ccbeac]/30"
+    >
+      <div className="flex items-center justify-between p-4 border-b border-[#ccbeac]/30">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
+            {region.name}
+          </h2>
+          <span className="px-2 py-1 bg-[#ccbeac] text-[#0b0b0b] rounded text-sm">
+            {region.code}
+          </span>
+        </div>
+        <span className="text-sm text-[#666] dark:text-[#999]">
+          {clients.length} client{clients.length !== 1 && 's'}
+        </span>
+      </div>
+
+      {clients.length === 0 ? (
+        <div className="p-6 text-center text-[#ccbeac]">
+          <span className="text-lg mb-2">📭</span>
+          <p className="font-medium">No clients in this region</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-[#ccbeac]/30">
+          {clients.map(client => (
+            <ClientAccordion
+              key={client._id.toString()}
+              client={client}
+              products={products}
+              isOpen={expandedClient === client._id.toString()}
+              onToggle={() => handleToggle(client._id.toString())}
+              onEdit={() => onEditClient(client)}
+              onDelete={() => onDeleteClient(client._id.toString())}
+            />
+          ))}
+        </div>
+      )}
+    </motion.div>
   );
 }

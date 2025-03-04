@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  
+  images: {
+    domains: ['localhost'], // Add your domain here if using external images
+  },
   webpack: (config) => {
   
     config.resolve.alias = {

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { AnimatePresence, motion } from 'framer-motion';
-import { XMarkIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Select from 'react-select';
 import { ClientDocument } from '@/lib/models/Client';
 import { RegionDocument } from '@/lib/models/Region';
@@ -22,13 +22,13 @@ type FormData = {
   region: string;
   products: Array<{
     product: string;
+    fabriquant: string;
     modele: string;
     reference: string;
     plageMesure: string;
     annee: string;
     versionLogiciel: string;
     autreInformation: string;
-    details: Array<{ name: string; value: string }>;
     addedAt: Date;
   }>;
 };
@@ -49,7 +49,6 @@ export default function ClientForm({
     formState: { errors },
     setValue,
     getValues,
-    watch,
   } = useForm<FormData>({
     defaultValues: {
       name: '',
@@ -75,8 +74,10 @@ export default function ClientForm({
         products: client.products.map(p => ({
           ...p,
           product: (p.product as any)._id.toString(),
-          // Convert legacy subProducts to details
-          details: p.details?.length ? p.details : p.subProducts || []
+          fabriquant: (p as any).fabriquant || '',
+          autreInformation: (p as any).autreInformation || 
+            ((p as any).details?.map((d: any) => `${d.name}: ${d.value}`).join('\n') || ''),
+          addedAt: p.addedAt || new Date()
         })),
       });
     }
@@ -103,18 +104,6 @@ export default function ClientForm({
     }
   };
 
-  const handleAddDetail = (productIndex: number) => {
-    const currentDetails = getValues(`products.${productIndex}.details`) || [];
-    const newDetails = [...currentDetails, { name: '', value: '' }];
-    setValue(`products.${productIndex}.details`, newDetails);
-  };
-
-  const handleRemoveDetail = (productIndex: number, detailIndex: number) => {
-    const currentDetails = getValues(`products.${productIndex}.details`) || [];
-    const newDetails = currentDetails.filter((_, i) => i !== detailIndex);
-    setValue(`products.${productIndex}.details`, newDetails);
-  };
-
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
@@ -126,18 +115,13 @@ export default function ClientForm({
         region: data.region,
         products: data.products.map(p => ({
           product: p.product,
+          fabriquant: p.fabriquant,
           modele: p.modele,
           reference: p.reference,
           plageMesure: p.plageMesure,
           annee: p.annee,
           versionLogiciel: p.versionLogiciel,
           autreInformation: p.autreInformation,
-          details: p.details
-            .filter(d => d.name.trim() && d.value.trim())
-            .map(d => ({
-              name: d.name.trim(),
-              value: d.value.trim()
-            })),
           addedAt: p.addedAt || new Date()
         })),
       };
@@ -297,13 +281,13 @@ export default function ClientForm({
                     type="button"
                     onClick={() => appendProduct({
                       product: '',
+                      fabriquant: '',
                       modele: '',
                       reference: '',
                       plageMesure: '',
                       annee: '',
                       versionLogiciel: '',
                       autreInformation: '',
-                      details: [],
                       addedAt: new Date(),
                     })}
                     className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg hover:bg-[#ccbeac]/90"
@@ -361,14 +345,21 @@ export default function ClientForm({
 
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm text-[#ccbeac] mb-2">Model</label>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Fabriquant</label>
+                          <input
+                            {...register(`products.${productIndex}.fabriquant`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Modéle</label>
                           <input
                             {...register(`products.${productIndex}.modele`)}
                             className="w-full p-2 border border-[#ccbeac] rounded"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-[#ccbeac] mb-2">Reference</label>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Référence</label>
                           <input
                             {...register(`products.${productIndex}.reference`)}
                             className="w-full p-2 border border-[#ccbeac] rounded"
@@ -376,7 +367,7 @@ export default function ClientForm({
                         </div>
                         <div>
                           <label className="block text-sm text-[#ccbeac] mb-2">
-                            Measurement Range
+                           Plage Mesure
                           </label>
                           <input
                             {...register(`products.${productIndex}.plageMesure`)}
@@ -384,7 +375,7 @@ export default function ClientForm({
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-[#ccbeac] mb-2">Year</label>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Année</label>
                           <input
                             type="number"
                             {...register(`products.${productIndex}.annee`)}
@@ -393,7 +384,7 @@ export default function ClientForm({
                         </div>
                         <div>
                           <label className="block text-sm text-[#ccbeac] mb-2">
-                            Software Version
+                            Logiciel
                           </label>
                           <input
                             {...register(`products.${productIndex}.versionLogiciel`)}
@@ -403,37 +394,13 @@ export default function ClientForm({
                       </div>
 
                       <div className="col-span-2">
-                        <div className="flex justify-between items-center mb-2">
-                          <label className="text-sm text-[#ccbeac]">Additional Details</label>
-                          <button
-                            type="button"
-                            onClick={() => handleAddDetail(productIndex)}
-                            className="text-[#ccbeac] hover:text-[#0b0b0b] dark:hover:text-[#f9f9f4]"
-                          >
-                            <PlusCircleIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                        {watch(`products.${productIndex}.details`)?.map((_, detailIndex) => (
-                          <div key={detailIndex} className="flex gap-2 mb-2">
-                            <input
-                              {...register(`products.${productIndex}.details.${detailIndex}.name`)}
-                              placeholder="Detail name"
-                              className="flex-1 p-2 border rounded"
-                            />
-                            <input
-                              {...register(`products.${productIndex}.details.${detailIndex}.value`)}
-                              placeholder="Detail value"
-                              className="flex-1 p-2 border rounded"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveDetail(productIndex, detailIndex)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        ))}
+                        <label className="block text-sm text-[#ccbeac] mb-2">
+                         Autre information
+                        </label>
+                        <textarea
+                          {...register(`products.${productIndex}.autreInformation`)}
+                          className="w-full p-2 border border-[#ccbeac] rounded h-24"
+                        />
                       </div>
                     </div>
                   </div>
