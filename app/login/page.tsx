@@ -155,7 +155,7 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Se connecter...' : 'Continuer vers le tableau de bord'}
+              {loading ? 'Se connecter...' : 'Se connecter'} 
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
 
