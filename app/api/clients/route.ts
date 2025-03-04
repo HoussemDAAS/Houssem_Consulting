@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     .populate({
       path: 'products.product',
       model: 'Product',
-      select: 'name'
+      select: 'name _id'
     })
       .lean();
     

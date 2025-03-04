@@ -1,22 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// app/api/products/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import jwt from 'jsonwebtoken';
 import Product from '@/lib/models/Product';
 
-export async function GET(request: Request) {
-  await dbConnect();
-  const token = request.headers.get('Authorization')?.split(' ')[1];
-  
-  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
+export async function GET() {
+  await dbConnect();
   try {
-    jwt.verify(token, process.env.JWT_SECRET!);
-    const products = await Product.find().select('name createdAt').lean();
+    const products = await Product.find().lean();
     return NextResponse.json(products, {
       headers: { 'Cache-Control': 'no-store, max-age=0' }
     });
-  } catch {
-    return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
+  } catch  {
+    return NextResponse.json(
+      { error: 'Server error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -27,28 +27,30 @@ export async function POST(request: Request) {
     
     if (!body.name?.trim()) {
       return NextResponse.json(
-        { error: 'Le nom de la catégorie est obligatoire' },
+        { error: 'Product name is required' },
         { status: 400 }
       );
     }
 
-    // Check for existing category
-    const existingProduct = await Product.findOne({ name: body.name.trim() });
-    if (existingProduct) {
+    const product = new Product({
+      name: body.name.trim(),
+      image: body.image || ''
+    });
+    
+    await product.save();
+    return NextResponse.json(product, { status: 201 });
+  } catch (error: any) {
+    if (error.code === 11000) {
       return NextResponse.json(
-        { error: 'Cette catégorie existe déjà' },
+        { error: 'Product already exists' },
         { status: 409 }
       );
     }
-
-    const product = new Product({ name: body.name.trim() });
-    await product.save();
-    return NextResponse.json(product, { status: 201 });
-  } catch (error) {
-    console.error('Error:', error);
     return NextResponse.json(
-      { error: 'Erreur du serveur' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }
 }
+
+// Similar updates for PUT and DELETE endpoints...

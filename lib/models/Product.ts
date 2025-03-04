@@ -1,7 +1,9 @@
+// lib/models/Product.ts
 import { Schema, model, models, Document } from 'mongoose';
 
 export interface ProductDocument extends Document {
   name: string;
+  image?: string;
   createdAt: Date;
 }
 
@@ -12,6 +14,7 @@ const ProductSchema = new Schema<ProductDocument>({
     unique: true,
     trim: true
   },
+  image: String,
   createdAt: {
     type: Date,
     default: Date.now
