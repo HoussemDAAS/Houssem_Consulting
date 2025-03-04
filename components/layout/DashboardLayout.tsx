@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-          Gestion des Categories et leurs produits
+         Gestion des produits
           </Link>
 
           {user.role === 'admin' && (
@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-             Gestion des utilisateurs du plateforme
+             Gestion des utilisateurs
             </Link>
           )}
         </nav>
