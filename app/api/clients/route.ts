@@ -6,6 +6,7 @@ import dbConnect from '@/lib/dbConnect';
 import Client from '@/lib/models/Client';
 import Ville from '@/lib/models/Ville';
 import Secteur from '@/lib/models/Secteur';
+import Region from '@/lib/models/Region';
 
 // app/api/clients/route.ts
 export async function GET(request: Request) {
@@ -13,16 +14,16 @@ export async function GET(request: Request) {
   void Secteur;
   try {
     await dbConnect();
-    const clients = await Client.find()
-    .populate({
+    const clients = await Client.find().
+    populate({
       path: 'region',
       select: 'name code',
-      model: 'Region'
+      model: Region // Use imported model directly
     })
     .populate({
       path: 'secteur',
       select: 'name code',
-      model: 'Secteur'
+      model: Secteur
     })
     .populate({
       path: 'ville',

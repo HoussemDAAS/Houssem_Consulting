@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Client from '@/lib/models/Client';
-
+// app/api/products/[id]/clients/route.ts
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }

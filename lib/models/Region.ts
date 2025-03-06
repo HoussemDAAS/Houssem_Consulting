@@ -1,4 +1,4 @@
-import { Schema, model, models, Document } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface RegionDocument extends Document {
   name: string;
@@ -19,5 +19,4 @@ const RegionSchema = new Schema<RegionDocument>({
     maxlength: 5
   }
 });
-
-export default models.Region || model<RegionDocument>('Region', RegionSchema);
+export default mongoose.models?.Region || mongoose.model<RegionDocument>('Region', RegionSchema);

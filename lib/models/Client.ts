@@ -1,8 +1,10 @@
 // Updated Client Schema (lib/models/Client.ts)
+// Keep only these:
 import { Schema, model, models, Document } from 'mongoose';
-import Secteur from './Secteur';
-import Ville from './Ville';
-
+import './Secteur';  // Import for side effects
+import './Ville';    // Import for side effects
+import './Region';   // Import for side effects
+import './Product';
 interface Contact {
   firstName: string;
   lastName: string;
