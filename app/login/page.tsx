@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ interface LoginFormData {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const { 
     register, 
     handleSubmit, 
@@ -55,8 +55,8 @@ export default function LoginPage() {
   
       // Store user session
       login(result.user); // Add this line
-      localStorage.setItem('user', JSON.stringify(result.user));
-      router.push('/dashboard');
+      // localStorage.setItem('user', JSON.stringify(result.user));
+      // router.push('/dashboard');
     } catch (err: any) {
       try {
         const errorData = JSON.parse(err.message);
@@ -68,6 +68,11 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (user?.token) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-black">
       <div className="relative md:w-1/2 h-[40vh] md:h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-8">

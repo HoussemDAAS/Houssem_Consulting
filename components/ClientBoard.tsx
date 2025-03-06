@@ -57,21 +57,23 @@ export default function ClientBoard() {
   };
 
   useEffect(() => {
-    if (user?.token) fetchData();
+    if (user?.token) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
   }, [user?.token]);
 
   const groupClientsByRegion = () => {
     const grouped = new Map<string, ClientDocument[]>();
-  
-    // Initialize groups with all regions
-    regions.forEach(region => {
-      grouped.set(region._id.toString(), []);
-    });
-  
-    // Add clients to their respective regions
+    
+    // Create groups only for regions with clients
     clients.forEach(client => {
-      const regionId = client.region._id.toString();
-      if (grouped.has(regionId)) {
+      const regionId = client.region?._id?.toString();
+      if (regionId) {
+        if (!grouped.has(regionId)) {
+          grouped.set(regionId, []);
+        }
         grouped.get(regionId)?.push(client);
       }
     });

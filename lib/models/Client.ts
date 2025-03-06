@@ -1,20 +1,26 @@
 // Updated Client Schema (lib/models/Client.ts)
 import { Schema, model, models, Document } from 'mongoose';
+import Secteur from './Secteur';
+import Ville from './Ville';
 
 interface Contact {
-  name: string;
-  phoneNumber: string;
+  firstName: string;
+  lastName: string;
+  service: string;
+  position: string;
+  email: string;
+  phone: string;
 }
 
 export interface ClientProduct {
   product: Schema.Types.ObjectId;
-  fabriquant: string; // New field
+  fabriquant: string;
   modele: string;
   reference: string;
   plageMesure: string;
   annee: string;
   versionLogiciel: string;
-  autreInformation: string; // Replaces custom details
+  autreInformation: string;
   addedAt: Date;
 }
 
@@ -22,38 +28,56 @@ export interface ClientDocument extends Document {
   name: string;
   region: Schema.Types.ObjectId;
   address?: string;
-  email?: string;
-  contacts: Contact[]; // Restored contacts array
+  secteur?: Schema.Types.ObjectId;
+  ville?: Schema.Types.ObjectId;
+  contacts: Contact[];
   products: ClientProduct[];
   createdAt: Date;
 }
+
 
 const ClientSchema = new Schema<ClientDocument>({
   name: { type: String, required: true },
   region: { type: Schema.Types.ObjectId, ref: 'Region', required: true },
   address: { type: String, default: '' },
-  email: { 
-    type: String,
-    unique: true,
-    sparse: true,
-    default: null
+  secteur: { 
+    type: Schema.Types.ObjectId,
+    ref: 'Secteur',
+    default: null,
+    validate: {
+      validator: (v: any) => v === null || mongoose.Types.ObjectId.isValid(v),
+      message: 'Invalid secteur reference'
+    }
   },
-  contacts: { // Restored contacts structure
+  ville: {
+    type: Schema.Types.ObjectId,
+    ref: 'Ville',
+    default: null,
+    validate: {
+      validator: (v: any) => v === null || mongoose.Types.ObjectId.isValid(v),
+      message: 'Invalid ville reference'
+    }
+  },
+  contacts: {
     type: [{
-      name: String,
-      phoneNumber: String
+      firstName: { type: String, default: '' },
+      lastName: { type: String, default: '' },
+      service: { type: String, default: '' },
+      position: { type: String, default: '' },
+      email: { type: String, default: '' },
+      phone: { type: String, default: '' }
     }],
     default: []
   },
   products: [{
     product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-    fabriquant: { type: String, default: '' }, // New field
+    fabriquant: { type: String, default: '' },
     modele: { type: String, default: '' },
     reference: { type: String, default: '' },
     plageMesure: { type: String, default: '' },
     annee: { type: String, default: '' },
     versionLogiciel: { type: String, default: '' },
-    autreInformation: { type: String, default: '' }, // Replaces details
+    autreInformation: { type: String, default: '' },
     addedAt: { type: Date, default: Date.now }
   }],
   createdAt: { type: Date, default: Date.now }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { useEffect, useState } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
@@ -60,7 +61,7 @@ export default function ClientForm({
   const [showRegionForm, setShowRegionForm] = useState(false);
   const [newRegion, setNewRegion] = useState({ name: '', code: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [editingRegion, setEditingRegion] = useState<RegionDocument | null>(null);
   const { fields: productFields, append: appendProduct, remove: removeProduct } = useFieldArray({
     control,
     name: 'products',
@@ -103,7 +104,42 @@ export default function ClientForm({
       alert('Failed to create region');
     }
   };
-
+  const handleUpdateRegion = async () => {
+    try {
+      const response = await fetch(`/api/regions/${editingRegion?._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRegion),
+      });
+  
+      if (!response.ok) throw new Error('Failed to update region');
+      
+      const updatedRegion = await response.json();
+      setValue('region', updatedRegion._id);
+      setEditingRegion(null);
+      setNewRegion({ name: '', code: '' });
+      refreshClients();
+    } catch (error) {
+      console.error('Region update error:', error);
+      alert('Failed to update region');
+    }
+  };
+  const handleDeleteRegion = async (regionId: string) => {
+    if (!confirm('Delete this region? Clients using it will need to be updated.')) return;
+    
+    try {
+      const response = await fetch(`/api/regions/${regionId}`, {
+        method: 'DELETE',
+      });
+  
+      if (!response.ok) throw new Error('Failed to delete region');
+      
+      refreshClients();
+    } catch (error) {
+      console.error('Deletion error:', error);
+      alert('Failed to delete region');
+    }
+  };
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
@@ -239,38 +275,75 @@ export default function ClientForm({
               </div>
 
               {showRegionForm && (
-                <div className="p-4 bg-[#f9f9f4] dark:bg-[#1a1a1a] rounded-lg space-y-3">
-                  <div>
-                    <input
-                      placeholder="Region name"
-                      value={newRegion.name}
-                      onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
-                      className="w-full p-2 border border-[#ccbeac] rounded"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      placeholder="Region code (e.g., TN)"
-                      value={newRegion.code}
-                      onChange={(e) =>
-                        setNewRegion({
-                          ...newRegion,
-                          code: e.target.value.toUpperCase().slice(0, 5),
-                        })
-                      }
-                      className="w-full p-2 border border-[#ccbeac] rounded"
-                      maxLength={5}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddRegion}
-                    className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded hover:bg-[#ccbeac]/90"
-                  >
-                    Add Region
-                  </button>
-                </div>
-              )}
+  <div className="p-4 bg-[#f9f9f4] dark:bg-[#1a1a1a] rounded-lg space-y-3">
+    <h3 className="font-medium">
+      {editingRegion ? 'Edit Region' : 'New Region'}
+    </h3>
+    <input
+      placeholder="Region name"
+      value={newRegion.name}
+      onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
+      className="w-full p-2 border border-[#ccbeac] rounded"
+    />
+    <input
+      placeholder="Region code (e.g., TN)"
+      value={newRegion.code}
+      onChange={(e) => setNewRegion({
+        ...newRegion,
+        code: e.target.value.toUpperCase().slice(0, 5),
+      })}
+      className="w-full p-2 border border-[#ccbeac] rounded"
+      maxLength={5}
+    />
+    <div className="flex gap-2">
+      <button
+        type="button"
+        onClick={editingRegion ? handleUpdateRegion : handleAddRegion}
+        className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded hover:bg-[#ccbeac]/90 flex-1"
+      >
+        {editingRegion ? 'Update' : 'Add'} Region
+      </button>
+      {editingRegion && (
+        <button
+          type="button"
+          onClick={() => setEditingRegion(null)}
+          className="px-4 py-2 text-red-500 hover:bg-red-100/20 rounded"
+        >
+          Cancel
+        </button>
+      )}
+    </div>
+    <div className="pt-4 border-t border-[#ccbeac]">
+      <h4 className="text-sm font-medium mb-2">Existing Regions</h4>
+      <div className="space-y-2">
+        {regions.map(region => (
+          <div key={region._id} className="flex items-center justify-between">
+            <span className="truncate">{region.name} ({region.code})</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingRegion(region);
+                  setNewRegion({ name: region.name, code: region.code });
+                }}
+                className="text-[#ccbeac] hover:text-[#ccbeac]/70"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteRegion(region._id)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <TrashIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
 
               <div className="border-t border-[#ccbeac] pt-6">
                 <div className="flex justify-between items-center mb-4">

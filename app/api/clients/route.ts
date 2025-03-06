@@ -4,8 +4,13 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Client from '@/lib/models/Client';
+import Ville from '@/lib/models/Ville';
+import Secteur from '@/lib/models/Secteur';
 
+// app/api/clients/route.ts
 export async function GET(request: Request) {
+  void Ville;
+  void Secteur;
   try {
     await dbConnect();
     const clients = await Client.find()
@@ -15,13 +20,30 @@ export async function GET(request: Request) {
       model: 'Region'
     })
     .populate({
+      path: 'secteur',
+      select: 'name code',
+      model: 'Secteur'
+    })
+    .populate({
+      path: 'ville',
+      select: 'name',
+      model: 'Ville', // Must match model name registration
+      options: { strictPopulate: false } // Allow null values
+    })
+    .populate({
       path: 'products.product',
       model: 'Product',
       select: 'name _id'
     })
-      .lean();
+    .lean();
+
+    // Handle legacy documents without ville
+    const safeClients = clients.map(client => ({
+      ...client,
+      ville: client.ville || null
+    }));
     
-    return NextResponse.json(clients, { 
+    return NextResponse.json(safeClients, { 
       status: 200,
       headers: { 'Cache-Control': 'no-store, max-age=0' }
     });
@@ -56,6 +78,7 @@ export async function POST(request: Request) {
     const client = new Client({
       name: body.name,
       region: body.region,
+      ville: body.ville || null,
       products: transformedProducts
     });
     
@@ -63,6 +86,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       await Client.populate(client, [
         { path: 'region' },
+        { path: 'ville' }, // Add this
         { path: 'products.product' }
       ]), 
       { status: 201 }

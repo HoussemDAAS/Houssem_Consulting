@@ -10,16 +10,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user?.token) { // Check for token specifically
+    if (!loading && !user?.token) {
       router.push('/login');
     }
-  }, [user?.token, loading, router]); 
-
+  }, [user?.token, loading, router]);
+  
+  // Modify your loading state to prevent flickering
   if (loading) {
     return <div className="min-h-screen bg-gray-50 dark:bg-gray-900"></div>;
   }
-
-  if (!user) return null;
+  
+  // Add additional protection for user state
+  if (!user || !user.token) return null;
 
   const isActive = (path: string) => pathname === path;
 
@@ -39,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            Gestion des clients
+            Client Board
           </Link>
           
           <Link 
@@ -50,7 +52,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-         Gestion des produits
+         Product Management
+          </Link>
+          <Link 
+            href="/contacts" 
+            className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
+              isActive('/contacts')
+                ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
+                : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+         Gestion des Contacts
           </Link>
 
           {user.role === 'admin' && (

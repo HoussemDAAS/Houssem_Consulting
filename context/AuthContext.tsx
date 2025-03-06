@@ -22,6 +22,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // useEffect(() => {
+  //   const verifyAuth = async () => {
+  //     const token = localStorage.getItem('token');
+  //     if (!token) {
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     try {
+  //       const response = await fetch('/api/auth/me', {
+  //         headers: { Authorization: `Bearer ${token}` }
+  //       });
+        
+  //       if (response.ok) {
+  //         const userData = await response.json();
+  //         setUser({ ...userData, token });
+  //       }
+  //     } catch (error) {
+  //       console.error('Auth verification failed:', error);
+  //     } finally {
+  //       setLoading(false); // Move to finally block
+  //     }
+  //   };
+
+  //   verifyAuth();
+  // }, []);
+  const login = (userData: User) => {
+    localStorage.setItem('token', userData.token); // Store only token
+    setUser({
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      token: userData.token
+    });
+  };
   useEffect(() => {
     const verifyAuth = async () => {
       const token = localStorage.getItem('token');
@@ -29,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
         return;
       }
-
+  
       try {
         const response = await fetch('/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
@@ -37,22 +73,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (response.ok) {
           const userData = await response.json();
-          setUser({ ...userData, token });
+          // Merge token with user data
+          setUser({ 
+            ...userData,
+            token // Ensure token is included in user object
+          });
+        } else {
+          localStorage.removeItem('token');
         }
-      } catch (error) {
-        console.error('Auth verification failed:', error);
+      } catch {
+        localStorage.removeItem('token');
       } finally {
-        setLoading(false); // Move to finally block
+        setLoading(false);
       }
     };
-
+  
     verifyAuth();
   }, []);
-  const login = (userData: User) => {
-    localStorage.setItem('token', userData.token);
-    setUser(userData);
-  };
-
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
