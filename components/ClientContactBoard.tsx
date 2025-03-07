@@ -137,41 +137,41 @@ export default function ClientContactBoard() {
   }
 
   return (
-    <div className="p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 mt-12 md:mt-0">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-0 justify-between items-start sm:items-center">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
           Contact Management
         </h1>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg"
+          className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg text-sm sm:text-base w-full sm:w-auto"
         >
           + Add Client
         </button>
       </div>
+      
       <ClientForm
         isOpen={showCreateForm}
         onClose={() => setShowCreateForm(false)}
         refreshClients={fetchData}
         regions={regions}
         products={[]}
-     
       />
 
       {groupClientsByRegion().map(([regionId, regionClients]) => {
-  const region = regions.find(r => r._id.toString() === regionId);
-  return region ? (
-    <ClientContactRegionGroup
-      key={regionId}
-      region={region}
-      secteurs={secteurs}
-      villes={villes} // Add this prop
-      clients={regionClients}
-      onSave={handleSave}
-      onSuccess={fetchData}
-    />
-  ) : null;
-})}
+        const region = regions.find(r => r._id.toString() === regionId);
+        return region ? (
+          <ClientContactRegionGroup
+            key={regionId}
+            region={region}
+            secteurs={secteurs}
+            villes={villes}
+            clients={regionClients}
+            onSave={handleSave}
+            onSuccess={fetchData}
+          />
+        ) : null;
+      })}
     </div>
   );
 }
