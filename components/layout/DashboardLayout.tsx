@@ -2,13 +2,15 @@
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { Menu, X } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user?.token) {
@@ -16,46 +18,82 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user?.token, loading, router]);
 
-  // Modify your loading state to prevent flickering
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   if (loading) {
     return <div className="min-h-screen bg-gray-50 dark:bg-gray-900"></div>;
   }
 
-  // Add additional protection for user state
   if (!user || !user.token) return null;
 
   const isActive = (path: string) => pathname === path;
 
   return (
     <div className="min-h-screen flex">
-      <aside className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 flex flex-col fixed h-screen">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      >
+        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </button>
+
+      {/* Backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Desktop layout preserved */}
+      <aside
+    className={`w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 flex-col fixed h-screen
+      transform transition-transform duration-300 md:translate-x-0 z-50
+      ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+  >
         <div className="relative w-full flex flex-col justify-center items-center gap-3 mt-3">
           <div className="relative w-20 h-20">
-            <Image src="/logo.jpeg" alt="Company Logo 1" fill className="object-contain" />
+            <Image
+              src="/logo.jpeg"
+              alt="Company Logo 1"
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 80px, 80px"
+            />
           </div>
           <div className="flex items-center">
             <span className="text-2xl text-secondaryColor">×</span>
           </div>
           <div className="relative w-20 h-20">
-            <Image src="/logo2.svg" alt="Company Logo 2" fill className="object-contain" />
+            <Image
+              src="/logo2.svg"
+              alt="Company Logo 2"
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 80px, 80px"
+            />
           </div>
         </div>
 
         <hr className="my-4 border-gray-200 dark:border-gray-700" />
+
         <nav className="space-y-2 flex-1 overflow-auto">
-          <Link 
-            href="/dashboard" 
+          <Link
+            href="/dashboard"
             className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
-              isActive('/dashboard') 
-                ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300' 
+              isActive('/dashboard')
+                ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
             Client Management
           </Link>
 
-          <Link 
-            href="/products" 
+          <Link
+            href="/products"
             className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
               isActive('/products')
                 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
@@ -64,8 +102,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           >
             Category Management
           </Link>
-          <Link 
-            href="/contacts" 
+
+          <Link
+            href="/contacts"
             className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
               isActive('/contacts')
                 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300'
@@ -92,25 +131,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="border-t dark:border-gray-700 pt-4">
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
             </div>
-            <button 
+            <button
               onClick={() => {
                 logout();
                 router.push('/login');
               }}
               className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
               </svg>
             </button>
           </div>
         </div>
       </aside>
 
-      <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 ml-64 overflow-auto">
+      {/* Main Content - Unchanged desktop layout */}
+      <main 
+    className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 ml-0 md:ml-64 overflow-auto"
+    onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+  >
         {children}
       </main>
     </div>

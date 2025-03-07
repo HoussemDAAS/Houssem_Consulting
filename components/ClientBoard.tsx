@@ -126,22 +126,22 @@ export default function ClientBoard() {
   }
 
   return (
-    <div className="p-6 space-y-8">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
+    <div className=" p-4 md:p-6 space-y-6 mt-12 md:mt-0">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-xl md:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
           Client Management
         </h1>
         
-        <div className="w-full md:w-auto">
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2"
-          >
-            <PlusIcon className="h-5 w-5" />
-            Add Client
-          </button>
-        </div>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base"
+        >
+          <PlusIcon className="h-5 w-5" />
+          <span>Add Client</span>
+        </button>
       </div>
+
 
       <ClientForm
         isOpen={showCreateForm}
@@ -151,33 +151,36 @@ export default function ClientBoard() {
         products={products}
       />
 
+      {/* Empty State */}
       {regions.length === 0 && (
-        <div className="p-6 text-center border-2 border-dashed rounded-xl">
+        <div className="p-4 md:p-6 text-center border-2 border-dashed rounded-xl">
           <p className="text-[#ccbeac] mb-4">No regions found</p>
           <button
             onClick={() => setShowCreateForm(true)}
-            className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg"
+            className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg text-sm md:text-base"
           >
             Create First Region
           </button>
         </div>
       )}
 
+      {/* Client Groups */}
       {groupClientsByRegion().map(([regionId, regionClients]) => (
-      <ClientRegionGroup
-      key={regionId}
-      region={regions.find(r => r._id.toString() === regionId)!}
-      clients={regionClients}
-      regions={regions}
-      products={products}
-      onEditClient={(client) => {
-        setEditingClient(client);
-        setShowEditForm(true);
-      }}
-      onDeleteClient={handleDeleteClient}
-    />
+        <ClientRegionGroup
+          key={regionId}
+          region={regions.find(r => r._id.toString() === regionId)!}
+          clients={regionClients}
+          regions={regions}
+          products={products}
+          onEditClient={(client) => {
+            setEditingClient(client);
+            setShowEditForm(true);
+          }}
+          onDeleteClient={handleDeleteClient}
+        />
       ))}
 
+      {/* Edit Form */}
       {editingClient && (
         <ClientForm
           isOpen={showEditForm}

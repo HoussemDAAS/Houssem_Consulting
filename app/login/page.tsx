@@ -74,101 +74,119 @@ export default function LoginPage() {
     }
   }, [user, router]);
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-black">
-      <div className="relative md:w-1/2 h-[40vh] md:h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-8">
-        <div className="relative z-10 space-y-8 text-center">
-        <div className="relative w-full flex justify-center gap-6 items-center p-8">
-        <div className="relative w-40 h-40 md:w-48 md:h-48">
-          <Image src="/logo.jpeg" alt="Company Logo 1" fill className="object-contain" />
-        </div>
-        <span className="text-3xl text-secondaryColor">×</span>
-        <div className="relative w-40 h-40 md:w-48 md:h-48">
-          <Image src="/logo2.svg" alt="Company Logo 2" fill className="object-contain" />
-        </div>
-      </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
-            Strategic Analytics Solutions
+    <div className="min-h-screen flex flex-col lg:flex-row bg-white dark:bg-black">
+      {/* Left Section */}
+      <div className="relative lg:w-1/2 min-h-[40vh] lg:min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
+        <div className="relative z-10 space-y-4 sm:space-y-6 md:space-y-8 text-center w-full">
+          {/* Logo Grid */}
+          <div className="flex flex-col xs:flex-row justify-center items-center gap-3 sm:gap-4 md:gap-6 p-4 sm:p-6 md:p-8">
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40">
+              <Image 
+                src="/logo.jpeg" 
+                alt="Company Logo 1" 
+                fill 
+                className="object-contain"
+                sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 160px"
+              />
+            </div>
+            <span className="text-xl sm:text-2xl md:text-3xl text-secondaryColor">×</span>
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40">
+              <Image 
+                src="/logo2.svg" 
+                alt="Company Logo 2" 
+                fill 
+                className="object-contain"
+                sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 160px"
+              />
+            </div>
+          </div>
+
+          {/* Heading */}
+          <div className="space-y-1 sm:space-y-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
+              Strategic Analytics Solutions
             </h2>
           </div>
-          <div className="grid grid-cols-3 gap-4 mt-8 max-w-xl mx-auto">
-  {['Data Analysis', 'Process Optimization', 'Technological Innovation', 'Strategic Decision-Making','Risk Management','Operational Efficiency'].map((value, index) => (
-    <div 
-      key={value}
-      className={`p-3 rounded-xl transition-all duration-300 ${
-        index % 2 === 0 
-          ? 'bg-black text-white dark:bg-white dark:text-black' 
-          : 'bg-white text-black dark:bg-gray-800 dark:text-white'
-      }`}
-    >
-      <span className="text-xs font-bold flex items-center gap-2 justify-center">
-        {index % 2 === 0 ? (
-          <Briefcase className="h-3 w-3" />
-        ) : (
-          <Lightbulb className="h-3 w-3" />
-        )}
-        {value}
-      </span>
-    </div>
-  ))}
-</div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4 max-w-xl mx-auto">
+            {['Data Analysis', 'Process Optimization', 'Technological Innovation', 'Strategic Decision-Making','Risk Management','Operational Efficiency'].map((value, index) => (
+              <div 
+                key={value}
+                className={`p-2 sm:p-3 rounded-lg md:rounded-xl transition-all duration-300 ${
+                  index % 2 === 0 
+                    ? 'bg-black text-white dark:bg-white dark:text-black' 
+                    : 'bg-white text-black dark:bg-gray-800 dark:text-white'
+                }`}
+              >
+                <span className="text-[10px] xs:text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 justify-center">
+                  {index % 2 === 0 ? (
+                    <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
+                  ) : (
+                    <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
+                  )}
+                  <span className="truncate">{value}</span>
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        
       </div>
 
-      <div className="relative md:w-1/2 flex items-center justify-center p-8">
-        <Card className="w-full max-w-md p-8 space-y-6 shadow-2xl dark:shadow-gray-900/30">
-          <div className="text-center space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-            Welcome
+      {/* Right Section */}
+      <div className="relative lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8">
+        <Card className="w-full max-w-[400px] md:max-w-md p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 shadow-xl dark:shadow-gray-900/30">
+          <div className="text-center space-y-1 sm:space-y-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+              Welcome
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Simplify the analysis and optimization of your processes
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+              Simplify analysis & process optimization
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="email">Email</Label>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+            <div className="space-y-2 sm:space-y-3">
+              <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="Enter your email"
-                className="dark:bg-gray-900 focus:ring-2 focus:ring-black dark:focus:ring-white"
+                className="h-10 sm:h-12 text-sm sm:text-base dark:bg-gray-900 focus:ring-2 focus:ring-black dark:focus:ring-white"
                 {...register('email', { required: 'Email is required' })}
               />
-              {errors.email && typeof errors.email.message === 'string' && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+              {errors.email && <p className="text-red-500 text-xs sm:text-sm">{errors.email.message}</p>}
             </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-2 sm:space-y-3">
+              <Label htmlFor="password" className="text-sm sm:text-base">Password</Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                className="dark:bg-gray-900 focus:ring-2 focus:ring-black dark:focus:ring-white"
+                className="h-10 sm:h-12 text-sm sm:text-base dark:bg-gray-900 focus:ring-2 focus:ring-black dark:focus:ring-white"
                 {...register('password', { required: 'Password is required' })}
               />
-              {errors.password && typeof errors.password.message === 'string' && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+              {errors.password && <p className="text-red-500 text-xs sm:text-sm">{errors.password.message}</p>}
             </div>
 
-            {error && <p className="text-red-500 text-center">{error}</p>}
+            {error && <p className="text-red-500 text-center text-sm sm:text-base">{error}</p>}
 
             <Button 
               className="w-full bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black 
-                        text-white py-6 text-lg transition-all"
+                        text-white py-4 sm:py-6 text-sm sm:text-base transition-all"
               type="submit"
               disabled={loading}
             >
               {loading ? 'Connecting...' : 'Login'} 
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
 
-            <div className="text-center text-sm">
-  <p className="text-gray-500 dark:text-gray-400">
-  Administration portal - restricted access
-  </p>
-</div>
+            <div className="text-center text-xs sm:text-sm">
+              <p className="text-gray-500 dark:text-gray-400">
+                Administration portal - restricted access
+              </p>
+            </div>
           </form>
         </Card>
       </div>

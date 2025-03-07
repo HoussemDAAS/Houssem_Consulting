@@ -7,6 +7,7 @@ import ClientBoard from '@/components/ClientBoard';
 export default function Dashboard() {
   return (
     <DashboardLayout>
+      
       <ClientBoard />
     </DashboardLayout>
   );

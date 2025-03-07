@@ -18,31 +18,28 @@ interface ClientAccordionProps {
 const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete }: ClientAccordionProps) => {
   return (
     <div className="border-b border-[#ccbeac]/30">
-      <div className="flex items-center p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]">
+      <div className="flex items-center p-3 md:p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]">
         <button
           onClick={onToggle}
-          className="flex items-center justify-center w-8 h-8 mr-2"
+          className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 mr-1 md:mr-2"
         >
-          <ChevronRight className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+          <ChevronRight className={`h-4 w-4 md:h-5 md:w-5 ${isOpen ? 'rotate-90' : ''}`} />
         </button>
 
-        <div className="flex-1 flex items-center gap-4">
-          <button
-            onClick={onEdit}
-            className="text-left flex-1 flex items-center gap-4 group"
-          >
-            <h3 className="text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
+        <div className="flex-1 flex items-center gap-2 md:gap-4">
+          <button onClick={onEdit} className="text-left flex-1">
+            <h3 className="text-base md:text-xl font-semibold truncate">
               {client.name}
             </h3>
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-[#ccbeac]" />
-              <span className="text-sm text-[#666] dark:text-[#999]">
+            <div className="flex items-center gap-1 mt-1">
+              <Package className="h-3 w-3 md:h-4 md:w-4 text-[#ccbeac]" />
+              <span className="text-xs md:text-sm text-[#666] dark:text-[#999]">
                 ({client.products.length} products)
               </span>
             </div>
           </button>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             <button
               onClick={onEdit}
               className="p-2 hover:bg-[#ccbeac]/20 rounded-full"
@@ -65,50 +62,88 @@ const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete 
       </div>
 
       <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4 ml-10">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#ccbeac]/30">
-                    <th className="text-left py-2"></th>
-                    <th className="text-left py-2 text-secondaryColor">Model</th>
-<th className="text-left py-2 text-secondaryColor">Manufacturer</th>
-<th className="text-left py-2 text-secondaryColor">Reference</th>
-<th className="text-left py-2 text-secondaryColor">Measurement Range</th>
-<th className="text-left py-2 text-secondaryColor">Year</th>
-<th className="text-left py-2 text-secondaryColor">Software</th>
-<th className="text-left py-2 text-secondaryColor">Other Information</th>
-
-
-                  </tr>
-                </thead>
-                <tbody>
-                  {client.products.map((p, index) => (
-                    <tr key={index} className="border-b border-[#ccbeac]/10">
-                      <td className="py-2 font-medium">
-                        {p.product?.name || 'Product Not Found'}
-                      </td>
-                      <td className="py-2">{p.modele || '-'}</td>
-                      <td>{p.fabriquant || '-'}</td>
-                      <td className="py-2">{p.reference || '-'}</td>
-                      <td className="py-2">{p.plageMesure || '-'}</td>
-                      <td className="py-2">{p.annee || '-'}</td>
-                      <td className="py-2">{p.versionLogiciel || '-'}</td>
-                      <td>{p.autreInformation || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+  {isOpen && (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      className="overflow-hidden"
+    >
+      <div className="px-2 md:px-4 pb-4 ml-6 md:ml-10">
+        {/* Mobile View */}
+        <div className="md:hidden space-y-2">
+          {client.products.map((p, index) => (
+            <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex justify-between items-start mb-2">
+                <span className="font-medium text-sm">
+                  {p.product?.name || 'Product Not Found'}
+                </span>
+                <span className="text-xs text-gray-500">#{index + 1}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Model:</span> {p.modele || '-'}
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Manufacturer:</span> {p.fabriquant || '-'}
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Reference:</span> {p.reference || '-'}
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Range:</span> {p.plageMesure || '-'}
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Year:</span> {p.annee || '-'}
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Software:</span> {p.versionLogiciel || '-'}
+                </div>
+                {p.autreInformation && (
+                  <div className="col-span-2">
+                    <span className="text-gray-500 dark:text-gray-400">Notes:</span> {p.autreInformation}
+                  </div>
+                )}
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </div>
+
+        {/* Desktop Table */}
+        <table className="hidden md:table w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#ccbeac]/30">
+              <th className="text-left py-2 w-[25%]">Product</th>
+              <th className="text-left py-2">Model</th>
+              <th className="text-left py-2">Manufacturer</th>
+              <th className="text-left py-2">Reference</th>
+              <th className="text-left py-2">Range</th>
+              <th className="text-left py-2">Year</th>
+              <th className="text-left py-2">Software</th>
+              <th className="text-left py-2">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {client.products.map((p, index) => (
+              <tr key={index} className="border-b border-[#ccbeac]/10 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <td className="py-2 font-medium">
+                  {p.product?.name || 'Product Not Found'}
+                </td>
+                <td className="py-2">{p.modele || '-'}</td>
+                <td>{p.fabriquant || '-'}</td>
+                <td className="py-2">{p.reference || '-'}</td>
+                <td className="py-2">{p.plageMesure || '-'}</td>
+                <td className="py-2">{p.annee || '-'}</td>
+                <td className="py-2">{p.versionLogiciel || '-'}</td>
+                <td className="text-xs max-w-[200px] truncate">{p.autreInformation || '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   );
 };
@@ -138,23 +173,21 @@ export default function ClientRegionGroup({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#1a1a1a] rounded-lg shadow-sm border border-[#ccbeac]/30"
-    >
-      <div className="flex items-center justify-between p-4 border-b border-[#ccbeac]/30">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
-            {region.name}
-          </h2>
-          <span className="px-2 py-1 bg-[#ccbeac] text-[#0b0b0b] rounded text-sm">
-            {region.code}
-          </span>
-        </div>
-        <span className="text-sm text-[#666] dark:text-[#999]">
-          {clients.length} client{clients.length !== 1 && 's'}
+    className="bg-white dark:bg-[#1a1a1a] rounded-lg shadow-sm border border-[#ccbeac]/30"
+  >
+    <div className="flex flex-col md:flex-row md:items-center justify-between p-3 md:p-4 border-b border-[#ccbeac]/30">
+      <div className="flex items-center gap-2 mb-2 md:mb-0">
+        <h2 className="text-lg md:text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
+          {region.name}
+        </h2>
+        <span className="px-2 py-1 bg-[#ccbeac] text-[#0b0b0b] rounded text-xs md:text-sm">
+          {region.code}
         </span>
       </div>
+      <span className="text-xs md:text-sm text-[#666] dark:text-[#999]">
+        {clients.length} client{clients.length !== 1 && 's'}
+      </span>
+    </div>
 
       {clients.length === 0 ? (
         <div className="p-6 text-center text-[#ccbeac]">
