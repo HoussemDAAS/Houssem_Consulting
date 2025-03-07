@@ -129,7 +129,7 @@ export default function ProductModal({
         >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-              {product ? 'Edit Product' : 'New Product'}
+              {product ? 'Edit Category' : 'New Category'}
             </h2>
             <button 
               onClick={onClose} 
@@ -143,7 +143,7 @@ export default function ProductModal({
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac] mb-2">
-                Product Name
+                Category Name
               </label>
               <input
                 type="text"
@@ -157,7 +157,7 @@ export default function ProductModal({
 
             <div className="space-y-4">
               <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
-                Product Image
+                Category Image
               </label>
               
               <div className="relative aspect-square bg-white rounded-lg overflow-hidden border-2 border-dashed border-[#ccbeac]">
@@ -206,7 +206,7 @@ export default function ProductModal({
               {loading ? (
                 <span className="animate-pulse">Saving...</span>
               ) : (
-                <span>{product?._id ? 'Update Product' : 'Create Product'}</span>
+                <span>{product?._id ? 'Update Category' : 'Create Category'}</span>
               )}
             </button>
           </form>

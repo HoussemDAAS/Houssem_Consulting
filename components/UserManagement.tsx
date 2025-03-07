@@ -82,20 +82,20 @@ export default function UserManagement() {
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Gestion des Utilisateurs</h2>
+        <h2 className="text-xl font-semibold">User Management</h2>
         <Button onClick={() => setShowForm(true)}>
-         Ajout utilisateur
+         Add User
         </Button>
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Crée un nouvel utilisateur</DialogTitle>
+            <DialogTitle>Create User</DialogTitle>
           </DialogHeader>
           <form onSubmit={createUser} className="space-y-4">
             <div className="space-y-2">
-              <Label>Nom</Label>
+              <Label>Name</Label>
               <Input
                 required
                 value={formData.name}
@@ -112,7 +112,7 @@ export default function UserManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Mot de passe</Label>
+              <Label>Password</Label>
               <Input
                 type="password"
                 required
@@ -127,8 +127,8 @@ export default function UserManagement() {
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="w-full p-2 border rounded"
               >
-                <option value="user">Utilisateur normal</option>
                 <option value="admin">Admin</option>
+                <option value="user">User</option>
               </select>
             </div>
             <div className="flex justify-end gap-2">
@@ -137,9 +137,9 @@ export default function UserManagement() {
                 variant="outline"
                 onClick={() => setShowForm(false)}
               >
-              Annuler
+                Cancel
               </Button>
-              <Button type="submit">Crée l&apos;utilisateur</Button>
+              <Button type="submit">Create User</Button>
             </div>
           </form>
         </DialogContent>
@@ -149,7 +149,7 @@ export default function UserManagement() {
         <table className="w-full">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th className="px-4 py-2 text-left">Nom</th>
+              <th className="px-4 py-2 text-left">Name</th>
               <th className="px-4 py-2 text-left">Email</th>
               <th className="px-4 py-2 text-left">Role</th>
             </tr>

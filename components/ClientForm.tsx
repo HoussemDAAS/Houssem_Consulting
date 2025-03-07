@@ -365,7 +365,7 @@ export default function ClientForm({
                     })}
                     className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg hover:bg-[#ccbeac]/90"
                   >
-                    Add Product
+                    Add Category
                   </button>
                 </div>
 
@@ -373,7 +373,7 @@ export default function ClientForm({
                   <div key={field.id} className="mb-6 p-4 border border-[#ccbeac] rounded-lg">
                     <div className="flex justify-between items-center mb-4">
                       <h4 className="font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
-                        Product {productIndex + 1}
+                        Category {productIndex + 1}
                       </h4>
                       <button
                         type="button"
@@ -386,7 +386,7 @@ export default function ClientForm({
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[#ccbeac] mb-2">Product *</label>
+                        <label className="block text-sm text-[#ccbeac] mb-2">Category *</label>
                         <Controller
                           name={`products.${productIndex}.product`}
                           control={control}
@@ -418,21 +418,21 @@ export default function ClientForm({
 
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm text-[#ccbeac] mb-2">Fabriquant</label>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Manufacturer</label>
                           <input
                             {...register(`products.${productIndex}.fabriquant`)}
                             className="w-full p-2 border border-[#ccbeac] rounded"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-[#ccbeac] mb-2">Modéle</label>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Modele</label>
                           <input
                             {...register(`products.${productIndex}.modele`)}
                             className="w-full p-2 border border-[#ccbeac] rounded"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-[#ccbeac] mb-2">Référence</label>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Reference</label>
                           <input
                             {...register(`products.${productIndex}.reference`)}
                             className="w-full p-2 border border-[#ccbeac] rounded"
@@ -440,7 +440,7 @@ export default function ClientForm({
                         </div>
                         <div>
                           <label className="block text-sm text-[#ccbeac] mb-2">
-                           Plage Mesure
+                          Measurement Rang
                           </label>
                           <input
                             {...register(`products.${productIndex}.plageMesure`)}
@@ -448,7 +448,7 @@ export default function ClientForm({
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-[#ccbeac] mb-2">Année</label>
+                          <label className="block text-sm text-[#ccbeac] mb-2">Year</label>
                           <input
                             type="number"
                             {...register(`products.${productIndex}.annee`)}
@@ -457,7 +457,7 @@ export default function ClientForm({
                         </div>
                         <div>
                           <label className="block text-sm text-[#ccbeac] mb-2">
-                            Logiciel
+                          Software
                           </label>
                           <input
                             {...register(`products.${productIndex}.versionLogiciel`)}
@@ -468,7 +468,7 @@ export default function ClientForm({
 
                       <div className="col-span-2">
                         <label className="block text-sm text-[#ccbeac] mb-2">
-                         Autre information
+                        Other Information
                         </label>
                         <textarea
                           {...register(`products.${productIndex}.autreInformation`)}

@@ -140,7 +140,7 @@ export default function ClientContactBoard() {
     <div className="p-6 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-          Gestion des Contacts
+          Contact Management
         </h1>
         <button
           onClick={() => setShowCreateForm(true)}

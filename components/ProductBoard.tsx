@@ -67,7 +67,7 @@ const fetchProducts = async () => {
     return (
       <div className="p-8 flex justify-center">
         <div className="animate-pulse text-[#ccbeac]">
-          Chargement des catégories...
+          Loading categories...
         </div>
       </div>
     );
@@ -78,7 +78,7 @@ const fetchProducts = async () => {
       {/* Header Section */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-          Gestion des Catégories
+          Category Management
         </h1>
         <button
           onClick={() => { setSelectedProduct(null); setModalOpen(true); }}
@@ -86,7 +86,7 @@ const fetchProducts = async () => {
                      flex items-center gap-2 transition-colors duration-200"
         >
           <PlusIcon className="h-5 w-5" />
-          Ajouter une catégorie
+          Add Category
         </button>
       </div>
 
@@ -112,7 +112,7 @@ const fetchProducts = async () => {
         </div>
       ) : (
         <div className="p-8 text-center text-[#ccbeac] border-2 border-dashed rounded-xl">
-          Aucune catégorie trouvée
+          No categories found. Click the button above to add a category.
         </div>
       )}
 

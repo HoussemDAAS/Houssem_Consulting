@@ -28,8 +28,7 @@ export async function GET(request: Request) {
     .populate({
       path: 'ville',
       select: 'name',
-      model: 'Ville', // Must match model name registration
-      options: { strictPopulate: false } // Allow null values
+      model: Ville
     })
     .populate({
       path: 'products.product',
@@ -80,6 +79,7 @@ export async function POST(request: Request) {
       name: body.name,
       region: body.region,
       ville: body.ville || null,
+      
       products: transformedProducts
     });
     

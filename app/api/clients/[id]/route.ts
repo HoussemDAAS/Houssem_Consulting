@@ -16,6 +16,7 @@ export async function PUT(
 ) {
   await dbConnect();
   
+
   try {
     const body = await request.json();
     
@@ -24,8 +25,7 @@ export async function PUT(
       {
         $set: {
           ...body,
-          ville: body.ville || null, // Add ville handling
-          secteur: body.secteur || null,
+
           contacts: body.contacts?.map((c: any) => ({
             firstName: c.firstName || '',
             lastName: c.lastName || '',
@@ -48,10 +48,10 @@ export async function PUT(
           }))
         }
       },
-      { 
-        new: true,
-        runValidators: true 
-      }
+      // { 
+      //   new: true,
+      //   runValidators: true 
+      // }
     )
     .populate('region')
     .populate('secteur')

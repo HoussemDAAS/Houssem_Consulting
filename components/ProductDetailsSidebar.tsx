@@ -74,13 +74,13 @@ export default function ProductDetailsSidebar({ product, onClose }: {
         )}
 
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">
-            Informations de la catégorie
-          </h3>
+            <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">
+            Category Information
+            </h3>
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-1">
               <p className="text-sm text-[#0b0b0b] dark:text-[#ccbeac]/80">
-                Date de création
+            Creation Date
               </p>
               <p className="font-medium text-[#0b0b0b] dark:text-[#f9f9f4]">
                 {format(new Date(product.createdAt), 'dd MMMM yyyy')}
@@ -91,11 +91,11 @@ export default function ProductDetailsSidebar({ product, onClose }: {
 
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-[#ccbeac] uppercase tracking-wider">
-            Statistiques
+           Statics
           </h3>
           <div className="grid grid-cols-1 gap-4">
             <div className="p-4 rounded-lg bg-[#ccbeac]/10 border border-[#ccbeac]/20">
-              <p className="text-sm text-[#ccbeac]">Clients associés</p>
+              <p className="text-sm text-[#ccbeac]">Number of clients using this category</p>
               {isLoading ? (
                 <div className="animate-pulse h-8 w-1/2 bg-[#ccbeac]/20 rounded mt-2" />
               ) : (

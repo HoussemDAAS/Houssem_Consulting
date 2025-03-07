@@ -77,13 +77,14 @@ const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete 
                 <thead>
                   <tr className="border-b border-[#ccbeac]/30">
                     <th className="text-left py-2"></th>
-                    <th className="text-left py-2 text-secondaryColor">Modèle</th>
-                    <th className="text-left py-2 text-secondaryColor">Fabriquant</th>
-                    <th className="text-left py-2 text-secondaryColor">Référence</th>
-                    <th className="text-left py-2 text-secondaryColor">Plage Mesure</th>
-                    <th className="text-left py-2 text-secondaryColor">Année</th>
-                    <th className="text-left py-2 text-secondaryColor">Logiciel</th>
-                    <th className="text-left py-2 text-secondaryColor">Autre Information</th>
+                    <th className="text-left py-2 text-secondaryColor">Model</th>
+<th className="text-left py-2 text-secondaryColor">Manufacturer</th>
+<th className="text-left py-2 text-secondaryColor">Reference</th>
+<th className="text-left py-2 text-secondaryColor">Measurement Range</th>
+<th className="text-left py-2 text-secondaryColor">Year</th>
+<th className="text-left py-2 text-secondaryColor">Software</th>
+<th className="text-left py-2 text-secondaryColor">Other Information</th>
+
 
                   </tr>
                 </thead>

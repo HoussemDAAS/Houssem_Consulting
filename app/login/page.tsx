@@ -77,22 +77,22 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-black">
       <div className="relative md:w-1/2 h-[40vh] md:h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-8">
         <div className="relative z-10 space-y-8 text-center">
-          <div className="relative w-48 h-48 mx-auto">
-            <Image
-              src="/logo.jpeg"
-              alt="Consulting Agency Logo"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
+        <div className="relative w-full flex justify-center gap-6 items-center p-8">
+        <div className="relative w-40 h-40 md:w-48 md:h-48">
+          <Image src="/logo.jpeg" alt="Company Logo 1" fill className="object-contain" />
+        </div>
+        <span className="text-3xl text-secondaryColor">×</span>
+        <div className="relative w-40 h-40 md:w-48 md:h-48">
+          <Image src="/logo2.svg" alt="Company Logo 2" fill className="object-contain" />
+        </div>
+      </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
-            Solutions d’affaires stratégiques
+            Strategic Analytics Solutions
             </h2>
           </div>
           <div className="grid grid-cols-3 gap-4 mt-8 max-w-xl mx-auto">
-  {['Stratégie', 'Innovation', 'Croissance', 'Analyse', 'Planification', 'Succès'].map((value, index) => (
+  {['Data Analysis', 'Process Optimization', 'Technological Innovation', 'Strategic Decision-Making','Risk Management','Operational Efficiency'].map((value, index) => (
     <div 
       key={value}
       className={`p-3 rounded-xl transition-all duration-300 ${
@@ -120,10 +120,10 @@ export default function LoginPage() {
         <Card className="w-full max-w-md p-8 space-y-6 shadow-2xl dark:shadow-gray-900/30">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-            Bienvenue
+            Welcome
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Simplifiez la gestion de votre entreprise
+            Simplify the analysis and optimization of your processes
             </p>
           </div>
 
@@ -141,7 +141,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -160,13 +160,13 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Se connecter...' : 'Se connecter'} 
+              {loading ? 'Connecting...' : 'Login'} 
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
 
             <div className="text-center text-sm">
   <p className="text-gray-500 dark:text-gray-400">
-  Portail d’administration - accès restreint
+  Administration portal - restricted access
   </p>
 </div>
           </form>

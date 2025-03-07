@@ -9,60 +9,58 @@ import { SecteurDocument } from '@/lib/models/Secteur';
 import { VilleDocument } from '@/lib/models/Ville';
 
 interface AddressManagementFormProps {
-    isOpen: boolean;
-    onClose: () => void;
-    client: {
-      id: string;
-      address: string;
-      ville?: string;
-      secteur?: string;
-    };
-    secteurs: SecteurDocument[];
-    villes: VilleDocument[];
-    onSave: (data: {
-      address: string;
-      ville?: string;
-      secteur?: string;
-    }) => Promise<void>;
-  }
+  isOpen: boolean;
+  onClose: () => void;
+  client: {
+    id: string;
+    address: string;
+    ville?: string;
+    secteur?: string;
+  };
+  secteurs: SecteurDocument[];
+  villes: VilleDocument[];
+  onSave: (data: {
+    address: string;
+    ville?: string;
+    secteur?: string;
+  }) => Promise<void>;
+}
 
-  export default function AddressManagementForm({
-    isOpen,
-    onClose,
-    client,
-    secteurs,
-    villes,
-    onSave,
-  }: AddressManagementFormProps) {
-    const { register, handleSubmit, control, reset, setValue, watch } = useForm({
-      defaultValues: {
-        address: client.address,
-        ville: client.ville,
-        secteur: client.secteur,
-      }
+export default function AddressManagementForm({
+  isOpen,
+  onClose,
+  client,
+  secteurs,
+  villes,
+  onSave,
+}: AddressManagementFormProps) {
+  const { register, handleSubmit, control, reset, setValue } = useForm({
+    defaultValues: {
+      address: client.address,
+      ville: client.ville,
+      secteur: client.secteur,
+    }
+  });
+
+  const [showSecteurForm, setShowSecteurForm] = useState(false);
+  const [showVilleForm, setShowVilleForm] = useState(false);
+  const [editingSecteur, setEditingSecteur] = useState<SecteurDocument | null>(null);
+  const [editingVille, setEditingVille] = useState<VilleDocument | null>(null);
+  const [newSecteur, setNewSecteur] = useState({ name: '', code: '' });
+  const [newVille, setNewVille] = useState({ name: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localSecteurs, setLocalSecteurs] = useState<SecteurDocument[]>(secteurs);
+  const [localVilles, setLocalVilles] = useState<VilleDocument[]>(villes);
+
+  useEffect(() => {
+    reset({
+      address: client.address,
+      ville: client.ville,
+      secteur: client.secteur,
     });
-    const [showSecteurForm, setShowSecteurForm] = useState(false);
-    const [showVilleForm, setShowVilleForm] = useState(false);
-    const [editingSecteur, setEditingSecteur] = useState<SecteurDocument | null>(null);
-    const [editingVille, setEditingVille] = useState<VilleDocument | null>(null);
-    const [newSecteur, setNewSecteur] = useState({ name: '', code: '' });
-    const [newVille, setNewVille] = useState({ name: '' });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-   
-    const [localSecteurs, setLocalSecteurs] = useState<SecteurDocument[]>(secteurs || []);
-    const [localVilles, setLocalVilles] = useState<VilleDocument[]>(villes || []);
-    const currentSecteur = watch('secteur');
-    const currentVille = watch('ville');
-
-    useEffect(() => {
-        reset({
-          address: client.address,
-          ville: client.ville,
-          secteur: client.secteur,
-        });
-        setLocalSecteurs(secteurs);
-        setLocalVilles(villes);
-      }, [client, reset, secteurs, villes]);
+    setLocalSecteurs(secteurs);
+    setLocalVilles(villes);
+  }, [client, reset, secteurs, villes]);
 
   const handleAddSecteur = async () => {
     try {
@@ -101,11 +99,7 @@ interface AddressManagementFormProps {
       setLocalSecteurs(prev => 
         prev.map(s => s._id === updatedSecteur._id ? updatedSecteur : s)
       );
-      
-      if (currentSecteur === editingSecteur._id) {
-        setValue('secteur', updatedSecteur._id);
-      }
-      
+      setValue('secteur', updatedSecteur._id);
       setEditingSecteur(null);
       setNewSecteur({ name: '', code: '' });
     } catch (error) {
@@ -114,27 +108,22 @@ interface AddressManagementFormProps {
     }
   };
 
-  const handleDeleteSecteur = async (secteurId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!confirm('Are you sure you want to delete this secteur? Clients using it will have it removed.')) return;
-
+  const handleDeleteSecteur = async (secteurId: string) => {
+    if (!confirm('Are you sure you want to delete this secteur?')) return;
     try {
       const response = await fetch(`/api/secteurs/${secteurId}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) throw new Error('Failed to delete secteur');
-      
-      if (currentSecteur === secteurId) {
-        setValue('secteur', '');
-      }
-
       setLocalSecteurs(prev => prev.filter(s => s._id !== secteurId));
+      setValue('secteur', '');
     } catch (error) {
       console.error('Secteur deletion error:', error);
       alert('Failed to delete secteur');
     }
   };
+
   const handleAddVille = async () => {
     try {
       const response = await fetch('/api/villes', {
@@ -150,12 +139,12 @@ interface AddressManagementFormProps {
       setValue('ville', createdVille._id);
       setShowVilleForm(false);
       setNewVille({ name: '' });
-      
     } catch (error) {
       console.error('Ville creation error:', error);
       alert('Failed to create ville');
     }
   };
+
   const handleUpdateVille = async () => {
     if (!editingVille) return;
 
@@ -172,11 +161,7 @@ interface AddressManagementFormProps {
       setLocalVilles(prev => 
         prev.map(v => v._id === updatedVille._id ? updatedVille : v)
       );
-      
-      if (currentVille === editingVille._id) {
-        setValue('ville', updatedVille._id);
-      }
-      
+      setValue('ville', updatedVille._id);
       setEditingVille(null);
       setNewVille({ name: '' });
     } catch (error) {
@@ -184,45 +169,31 @@ interface AddressManagementFormProps {
       alert('Failed to update ville');
     }
   };
-  const handleDeleteVille = async (villeId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!confirm('Are you sure you want to delete this ville? Clients using it will have it removed.')) return;
 
+  const handleDeleteVille = async (villeId: string) => {
+    if (!confirm('Are you sure you want to delete this ville?')) return;
     try {
       const response = await fetch(`/api/villes/${villeId}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) throw new Error('Failed to delete ville');
-      
-      if (currentVille === villeId) {
-        setValue('ville', '');
-      }
-
       setLocalVilles(prev => prev.filter(v => v._id !== villeId));
+      setValue('ville', '');
     } catch (error) {
       console.error('Ville deletion error:', error);
       alert('Failed to delete ville');
     }
   };
-  
-  const startEditVille = (ville: VilleDocument, e: React.MouseEvent) => {
-    e.preventDefault();
-    setEditingVille(ville);
-    setNewVille({ name: ville.name });
-    setShowVilleForm(true);
-  };
-  const startEditSecteur = (secteur: SecteurDocument, e: React.MouseEvent) => {
-    e.preventDefault();
-    setEditingSecteur(secteur);
-    setNewSecteur({ name: secteur.name, code: secteur.code });
-    setShowSecteurForm(true);
-  };
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      await onSave(data);
+      await onSave({
+        address: data.address,
+        ville: data.ville,
+        secteur: data.secteur
+      });
       onClose();
     } catch (error) {
       console.error('Submission error:', error);
@@ -294,11 +265,6 @@ interface AddressManagementFormProps {
                                 borderColor: '#ccbeac',
                                 minHeight: '3rem',
                               }),
-                              menu: (base) => ({
-                                ...base,
-                                zIndex: 9999,
-                                maxHeight: '200px',
-                              }),
                             }}
                           />
                         );
@@ -356,14 +322,17 @@ interface AddressManagementFormProps {
                             <div className="flex gap-2">
                               <button
                                 type="button"
-                                onClick={(e) => startEditVille(ville, e)}
+                                onClick={() => {
+                                  setEditingVille(ville);
+                                  setNewVille({ name: ville.name });
+                                }}
                                 className="text-[#ccbeac] hover:text-[#ccbeac]/70"
                               >
                                 Edit
                               </button>
                               <button
                                 type="button"
-                                onClick={(e) => handleDeleteVille(ville._id, e)}
+                                onClick={() => handleDeleteVille(ville._id)}
                                 className="text-red-500 hover:text-red-700"
                               >
                                 <TrashIcon className="h-4 w-4" />
@@ -377,9 +346,7 @@ interface AddressManagementFormProps {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Sector
-                  </label>
+                  <label className="block text-sm font-medium mb-2">Sector</label>
                   <div className="flex gap-2">
                     <Controller
                       name="secteur"
@@ -400,11 +367,6 @@ interface AddressManagementFormProps {
                                 ...base,
                                 borderColor: '#ccbeac',
                                 minHeight: '3rem',
-                              }),
-                              menu: (base) => ({
-                                ...base,
-                                zIndex: 9999,
-                                maxHeight: '200px',
                               }),
                             }}
                           />
@@ -430,20 +392,19 @@ interface AddressManagementFormProps {
                     <h3 className="font-medium">
                       {editingSecteur ? 'Edit Sector' : 'New Sector'}
                     </h3>
-                    
                     <input
                       placeholder="Sector name"
                       value={newSecteur.name}
-                      onChange={(e) => setNewSecteur({ ...newSecteur, name: e.target.value })}
+                      onChange={(e) => setNewSecteur(prev => ({ ...prev, name: e.target.value }))}
                       className="w-full p-2 border border-[#ccbeac] rounded"
                     />
                     <input
                       placeholder="Sector code"
                       value={newSecteur.code}
-                      onChange={(e) => setNewSecteur({ 
-                        ...newSecteur, 
+                      onChange={(e) => setNewSecteur(prev => ({ 
+                        ...prev, 
                         code: e.target.value.toUpperCase().slice(0, 5)
-                      })}
+                      }))}
                       className="w-full p-2 border border-[#ccbeac] rounded"
                       maxLength={5}
                     />
@@ -465,7 +426,6 @@ interface AddressManagementFormProps {
                         </button>
                       )}
                     </div>
-
                     <div className="pt-4 border-t border-[#ccbeac]">
                       <h4 className="text-sm font-medium mb-2">Existing Sectors</h4>
                       <div className="space-y-2">
@@ -477,14 +437,17 @@ interface AddressManagementFormProps {
                             <div className="flex gap-2">
                               <button
                                 type="button"
-                                onClick={(e) => startEditSecteur(secteur, e)}
+                                onClick={() => {
+                                  setEditingSecteur(secteur);
+                                  setNewSecteur({ name: secteur.name, code: secteur.code });
+                                }}
                                 className="text-[#ccbeac] hover:text-[#ccbeac]/70"
                               >
                                 Edit
                               </button>
                               <button
                                 type="button"
-                                onClick={(e) => handleDeleteSecteur(secteur._id, e)}
+                                onClick={() => handleDeleteSecteur(secteur._id)}
                                 className="text-red-500 hover:text-red-700"
                               >
                                 <TrashIcon className="h-4 w-4" />

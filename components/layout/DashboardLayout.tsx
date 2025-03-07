@@ -3,9 +3,10 @@ import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading , logout} = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -14,27 +15,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.push('/login');
     }
   }, [user?.token, loading, router]);
-  
+
   // Modify your loading state to prevent flickering
   if (loading) {
     return <div className="min-h-screen bg-gray-50 dark:bg-gray-900"></div>;
   }
-  
+
   // Add additional protection for user state
   if (!user || !user.token) return null;
 
   const isActive = (path: string) => pathname === path;
 
-
-
   return (
     <div className="min-h-screen flex">
-      <aside className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 flex flex-col">
-        <div className="mb-8">
-          <img src="/logo.jpeg" alt="Logo" className="h-12 w-auto" />
+      <aside className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 flex flex-col fixed h-screen">
+        <div className="relative w-full flex flex-col justify-center items-center gap-3 mt-3">
+          <div className="relative w-20 h-20">
+            <Image src="/logo.jpeg" alt="Company Logo 1" fill className="object-contain" />
+          </div>
+          <div className="flex items-center">
+            <span className="text-2xl text-secondaryColor">×</span>
+          </div>
+          <div className="relative w-20 h-20">
+            <Image src="/logo2.svg" alt="Company Logo 2" fill className="object-contain" />
+          </div>
         </div>
-        
-        <nav className="space-y-2 flex-1">
+
+        <hr className="my-4 border-gray-200 dark:border-gray-700" />
+        <nav className="space-y-2 flex-1 overflow-auto">
           <Link 
             href="/dashboard" 
             className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
@@ -43,9 +51,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-            Client Board
+            Client Management
           </Link>
-          
+
           <Link 
             href="/products" 
             className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
@@ -54,7 +62,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-         Product Management
+            Category Management
           </Link>
           <Link 
             href="/contacts" 
@@ -64,7 +72,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 : 'hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
           >
-         Gestion des Contacts
+            Contact Management
           </Link>
 
           {user.role === 'admin' && (
@@ -76,7 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-             Gestion des utilisateurs
+              User Management
             </Link>
           )}
         </nav>
@@ -102,7 +110,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900">
+      <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 ml-64 overflow-auto">
         {children}
       </main>
     </div>

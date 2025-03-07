@@ -42,23 +42,15 @@ const ClientSchema = new Schema<ClientDocument>({
   name: { type: String, required: true },
   region: { type: Schema.Types.ObjectId, ref: 'Region', required: true },
   address: { type: String, default: '' },
-  secteur: { 
-    type: Schema.Types.ObjectId,
-    ref: 'Secteur',
-    default: null,
-    validate: {
-      validator: (v: any) => v === null || mongoose.Types.ObjectId.isValid(v),
-      message: 'Invalid secteur reference'
-    }
-  },
   ville: {
     type: Schema.Types.ObjectId,
     ref: 'Ville',
     default: null,
-    validate: {
-      validator: (v: any) => v === null || mongoose.Types.ObjectId.isValid(v),
-      message: 'Invalid ville reference'
-    }
+  },
+  secteur: { 
+    type: Schema.Types.ObjectId,
+    ref: 'Secteur',
+    default: null,
   },
   contacts: {
     type: [{
