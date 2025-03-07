@@ -39,27 +39,59 @@ export default function ProductModal({
     }
   }, [product]);
 
+  // const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (!file) return;
+
+  //   const reader = new FileReader();
+  //   reader.onload = () => setPreview(reader.result as string);
+  //   reader.readAsDataURL(file);
+
+  //   try {
+  //     setLoading(true);
+  //     const formData = new FormData();
+  //     formData.append('file', file);
+      
+  //     const response = await fetch('/api/upload', { method: 'POST', body: formData });
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.error || 'Upload failed');
+  //     }
+      
+  //     const result = await response.json();
+  //     setImage(result.filename);
+  //     toast.success('Image uploaded successfully');
+  //   } catch (error) {
+  //     console.error('Upload failed:', error);
+  //     toast.error(error instanceof Error ? error.message : 'Failed to upload image');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+  
     const reader = new FileReader();
     reader.onload = () => setPreview(reader.result as string);
     reader.readAsDataURL(file);
-
+  
     try {
       setLoading(true);
+      
+      // Create FormData and append the file
       const formData = new FormData();
       formData.append('file', file);
+  
+      const response = await fetch(`/api/upload`, {
+        method: 'POST',
+        body: formData // Send FormData directly
+      });
+  
+      if (!response.ok) throw new Error('Upload failed');
       
-      const response = await fetch('/api/upload', { method: 'POST', body: formData });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
-      }
-      
-      const result = await response.json();
-      setImage(result.filename);
+      const { url } = await response.json();
+      setImage(url);
       toast.success('Image uploaded successfully');
     } catch (error) {
       console.error('Upload failed:', error);
@@ -68,11 +100,23 @@ export default function ProductModal({
       setLoading(false);
     }
   };
-
+  // const handleRemoveImage = async () => {
+  //   if (image) {
+  //     try {
+  //       await fetch(`/api/upload?path=${encodeURIComponent(image)}`, { 
+  //         method: 'DELETE' 
+  //       });
+  //     } catch (error) {
+  //       console.error('Error deleting image:', error);
+  //     }
+  //   }
+  //   setImage('');
+  //   setPreview(null);
+  // };
   const handleRemoveImage = async () => {
     if (image) {
       try {
-        await fetch(`/api/upload?path=${encodeURIComponent(image)}`, { 
+        await fetch(`/api/upload?url=${encodeURIComponent(image)}`, { 
           method: 'DELETE' 
         });
       } catch (error) {
@@ -82,7 +126,6 @@ export default function ProductModal({
     setImage('');
     setPreview(null);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

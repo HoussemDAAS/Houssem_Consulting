@@ -20,12 +20,18 @@ const ProductSchema = new Schema<ProductDocument>({
   image: {
     type: String,
     default: '',
+    // validate: {
+    //   validator: function(v: string) {
+    //     // Validate existing images but allow empty values
+    //     return !v || /^\/uploads\/[a-f0-9-]+-[^\/]+$/.test(v);
+    //   },
+    //   message: (props: any) => `Invalid image path format: ${props.value}`
+    // }
     validate: {
       validator: function(v: string) {
-        // Validate existing images but allow empty values
-        return !v || /^\/uploads\/[a-f0-9-]+-[^\/]+$/.test(v);
+        return !v || v.startsWith('https://');
       },
-      message: (props: any) => `Invalid image path format: ${props.value}`
+      message: (props: any) => `Invalid image URL format: ${props.value}`
     }
   },
   createdAt: {

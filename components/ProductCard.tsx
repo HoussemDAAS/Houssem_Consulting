@@ -23,12 +23,15 @@ export default function ProductCard({
     >
       <div className="relative aspect-square bg-white/90">
         {product.image ? (
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-contain p-3"
-            loading="lazy"
-          />
+      <img
+      src={product.image}
+      alt={product.name}
+      className="w-full h-full object-contain p-3"
+      loading="lazy"
+      onError={(e) => {
+        (e.target as HTMLImageElement).style.display = 'none';
+      }}
+    />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#ccbeac]/50">
             <Image className="w-8 h-8" />
