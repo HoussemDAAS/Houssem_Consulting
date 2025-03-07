@@ -92,9 +92,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const logout = () => {
     localStorage.removeItem('token');
+    // Clear cookies for server-side
+    document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     setUser(null);
   };
-
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}

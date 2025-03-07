@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading , logout} = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -24,6 +24,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user || !user.token) return null;
 
   const isActive = (path: string) => pathname === path;
+
+
 
   return (
     <div className="min-h-screen flex">
@@ -87,7 +89,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <button 
               onClick={() => {
-                localStorage.removeItem('token');
+                logout();
                 router.push('/login');
               }}
               className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
