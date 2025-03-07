@@ -8,11 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, Briefcase, Lightbulb } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
-
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-
-
 
 interface LoginFormData {
   email: string;
@@ -41,89 +38,72 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      const contentType = response.headers.get("content-type");
+
       if (!response.ok) {
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Login failed");
-        } else {
-          throw new Error("Unexpected server response. Please try again later.");
-        }
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Login failed");
       }
-  
+
       const result = await response.json();
-  
-      // Store user session
-      login(result.user); // Add this line
-      // localStorage.setItem('user', JSON.stringify(result.user));
-      // router.push('/dashboard');
+      login(result.user);
     } catch (err: any) {
-      try {
-        const errorData = JSON.parse(err.message);
-        setError(errorData.error || 'Login failed');
-      } catch {
-        setError(err.message || 'Login failed');
-      }
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    if (user?.token) {
-      router.push('/dashboard');
-    }
+    if (user?.token) router.push('/dashboard');
   }, [user, router]);
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white dark:bg-black">
       {/* Left Section */}
-      <div className="relative lg:w-1/2 min-h-[40vh] lg:min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
-        <div className="relative z-10 space-y-4 sm:space-y-6 md:space-y-8 text-center w-full">
-          {/* Logo Grid */}
-          <div className="flex flex-col xs:flex-row justify-center items-center gap-3 sm:gap-4 md:gap-6 p-4 sm:p-6 md:p-8">
-            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40">
+      <div className="lg:w-1/2 flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+        <div className="space-y-6 max-w-xs">
+          <div className="flex justify-center items-center gap-4">
+            <div className="relative w-20 h-20">
               <Image 
                 src="/logo.jpeg" 
-                alt="Company Logo 1" 
+                alt="Company Logo"
                 fill 
                 className="object-contain"
-                sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 160px"
+                sizes="80px"
               />
             </div>
-            <span className="text-xl sm:text-2xl md:text-3xl text-secondaryColor">×</span>
-            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40">
+            <span className="text-2xl text-gray-600 dark:text-gray-300">×</span>
+            <div className="relative w-20 h-20">
               <Image 
                 src="/logo2.svg" 
-                alt="Company Logo 2" 
+                alt="Company Logo" 
                 fill 
                 className="object-contain"
-                sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 160px"
+                sizes="80px"
               />
             </div>
           </div>
 
-          {/* Heading */}
-          <div className="space-y-1 sm:space-y-2">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
-              Strategic Analytics Solutions
-            </h2>
-          </div>
+          <h2 className="text-xl font-bold text-center text-gray-800 dark:text-gray-200">
+            Strategic Analytics Platform
+          </h2>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4 max-w-xl mx-auto">
-            {['Data Analysis', 'Process Optimization', 'Technological Innovation', 'Strategic Decision-Making','Risk Management','Operational Efficiency'].map((value, index) => (
+          {/* Compact Features Grid */}
+          <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto">
+            {['Analytics', 'Efficiency', 'Innovation', 'Strategy'].map((value, index) => (
               <div 
                 key={value}
-                className={`p-2 sm:p-3 rounded-lg md:rounded-xl transition-all duration-300 ${
+                className={`p-2 rounded-md text-xs sm:text-sm transition-colors ${
                   index % 2 === 0 
-                    ? 'bg-black text-white dark:bg-white dark:text-black' 
-                    : 'bg-white text-black dark:bg-gray-800 dark:text-white'
+                    ? 'bg-primaryColor text-white dark:bg-gray-200 dark:text-black' 
+                    : 'bg-gray-100 text-black dark:bg-primaryColor dark:text-gray-200'
                 }`}
               >
-                <span className="text-[10px] xs:text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 justify-center">
+                <span className="flex items-center gap-1 justify-center">
                   {index % 2 === 0 ? (
-                    <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <Briefcase className="h-3 w-3" />
                   ) : (
-                    <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <Lightbulb className="h-3 w-3" />
                   )}
                   <span className="truncate">{value}</span>
                 </span>
@@ -134,59 +114,56 @@ export default function LoginPage() {
       </div>
 
       {/* Right Section */}
-      <div className="relative lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8">
-        <Card className="w-full max-w-[400px] md:max-w-md p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 shadow-xl dark:shadow-gray-900/30">
-          <div className="text-center space-y-1 sm:space-y-2">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              Welcome
+      <div className="lg:w-1/2 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md p-6 space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Welcome Back
             </h1>
-            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-              Simplify analysis & process optimization
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Sign in to continue
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-            <div className="space-y-2 sm:space-y-3">
-              <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
-                className="h-10 sm:h-12 text-sm sm:text-base dark:bg-gray-900 focus:ring-2 focus:ring-black dark:focus:ring-white"
+                placeholder="Email address"
+                className="dark:bg-gray-900"
                 {...register('email', { required: 'Email is required' })}
               />
-              {errors.email && <p className="text-red-500 text-xs sm:text-sm">{errors.email.message}</p>}
+              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
 
-            <div className="space-y-2 sm:space-y-3">
-              <Label htmlFor="password" className="text-sm sm:text-base">Password</Label>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
-                className="h-10 sm:h-12 text-sm sm:text-base dark:bg-gray-900 focus:ring-2 focus:ring-black dark:focus:ring-white"
+                placeholder="Password"
+                className="dark:bg-gray-900"
                 {...register('password', { required: 'Password is required' })}
               />
-              {errors.password && <p className="text-red-500 text-xs sm:text-sm">{errors.password.message}</p>}
+              {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
             </div>
 
-            {error && <p className="text-red-500 text-center text-sm sm:text-base">{error}</p>}
+            {error && <p className="text-red-500 text-center text-sm">{error}</p>}
 
             <Button 
-              className="w-full bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black 
-                        text-white py-4 sm:py-6 text-sm sm:text-base transition-all"
+              className="w-full"
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Connecting...' : 'Login'} 
-              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+              {loading ? 'Signing in...' : 'Continue'}
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
 
-            <div className="text-center text-xs sm:text-sm">
-              <p className="text-gray-500 dark:text-gray-400">
-                Administration portal - restricted access
-              </p>
-            </div>
+            <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+              Administrative access only
+            </p>
           </form>
         </Card>
       </div>

@@ -174,6 +174,7 @@ export default function ClientForm({
       }
 
       refreshClients();
+      reset();
       onClose();
     } catch (error) {
       console.error('Submission error:', error);

@@ -18,48 +18,50 @@ interface ClientAccordionProps {
 const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete }: ClientAccordionProps) => {
   return (
     <div className="border-b border-[#ccbeac]/30">
-      <div className="flex items-center p-3 md:p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]">
-        <button
-          onClick={onToggle}
-          className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 mr-1 md:mr-2"
-        >
-          <ChevronRight className={`h-4 w-4 md:h-5 md:w-5 ${isOpen ? 'rotate-90' : ''}`} />
-        </button>
+     <div className="flex items-center p-3 md:p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]">
+  <button
+    onClick={onToggle}
+    className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 mr-1 md:mr-2 flex-shrink-0"
+  >
+    <ChevronRight className={`h-4 w-4 md:h-5 md:w-5 ${isOpen ? 'rotate-90' : ''}`} />
+  </button>
 
-        <div className="flex-1 flex items-center gap-2 md:gap-4">
-          <button onClick={onEdit} className="text-left flex-1">
-            <h3 className="text-base md:text-xl font-semibold truncate">
-              {client.name}
-            </h3>
-            <div className="flex items-center gap-1 mt-1">
-              <Package className="h-3 w-3 md:h-4 md:w-4 text-[#ccbeac]" />
-              <span className="text-xs md:text-sm text-[#666] dark:text-[#999]">
-                ({client.products.length} products)
-              </span>
-            </div>
-          </button>
-          
-          <div className="flex items-center gap-1 md:gap-2">
-            <button
-              onClick={onEdit}
-              className="p-2 hover:bg-[#ccbeac]/20 rounded-full"
-            >
-              <Pencil className="h-5 w-5 text-[#ccbeac]" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (window.confirm('Are you sure you want to delete this client?')) {
-                  onDelete();
-                }
-              }}
-              className="p-2 hover:bg-red-100/50 rounded-full transition-colors"
-            >
-              <Trash className="h-5 w-5 text-red-500" />
-            </button>
-          </div>
-        </div>
+  <div className="flex items-center gap-2 md:gap-4 w-full min-w-0">
+    <div className="flex-1 min-w-0">
+      <button onClick={onEdit} className="text-left w-full truncate">
+        <h3 className="text-base md:text-xl font-semibold truncate">
+          {client.name}
+        </h3>
+      </button>
+      <div className="flex items-center gap-1 mt-1 truncate">
+        <Package className="h-3 w-3 md:h-4 md:w-4 text-[#ccbeac] flex-shrink-0" />
+        <span className="text-xs md:text-sm text-[#666] dark:text-[#999] truncate">
+          ({client.products.length} products)
+        </span>
       </div>
+    </div>
+    
+    <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
+      <button
+        onClick={onEdit}
+        className="p-1 md:p-2 hover:bg-[#ccbeac]/20 rounded-full"
+      >
+        <Pencil className="h-5 w-5 text-[#ccbeac]" />
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          if (window.confirm('Are you sure you want to delete this client?')) {
+            onDelete();
+          }
+        }}
+        className="p-1 md:p-2 hover:bg-red-100/50 rounded-full transition-colors"
+      >
+        <Trash className="h-5 w-5 text-red-500" />
+      </button>
+    </div>
+  </div>
+</div>
 
       <AnimatePresence>
   {isOpen && (

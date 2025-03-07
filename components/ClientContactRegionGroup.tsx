@@ -114,6 +114,9 @@ export default function ClientContactRegionGroup({
   };
 
   const startContactEditing = (client: ClientDocument) => {
+    if (expandedClient !== client._id.toString()) {
+      setExpandedClient(client._id.toString());
+    }
     setEditingClient({
       id: client._id.toString(),
       contacts:
