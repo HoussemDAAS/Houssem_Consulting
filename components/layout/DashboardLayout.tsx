@@ -162,7 +162,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content - Unchanged desktop layout */}
       <main 
-    className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 ml-0 md:ml-64 overflow-auto"
+    className="flex-1  bg-gray-50 dark:bg-gray-900 ml-0 md:ml-64 overflow-auto"
     onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
   >
         {children}
