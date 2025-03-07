@@ -162,43 +162,43 @@ export default function ProductModal({
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-2 sm:p-4">
         <div className="fixed inset-0 bg-black/30" />
 
         <motion.div
           initial={{ scale: 0.95 }}
           animate={{ scale: 1 }}
-          className="relative bg-white dark:bg-[#0b0b0b] rounded-xl p-6 w-full max-w-md border border-[#ccbeac]"
+          className="relative bg-white dark:bg-[#0b0b0b] rounded-xl p-4 sm:p-6 w-full max-w-xs sm:max-w-sm md:max-w-md border border-[#ccbeac] mx-2"
         >
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
               {product ? 'Edit Category' : 'New Category'}
             </h2>
             <button 
               onClick={onClose} 
-              className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75"
+              className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75 p-1"
               disabled={loading}
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
-              <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac] mb-2">
+              <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac] mb-1 sm:mb-2">
                 Category Name
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-[#ccbeac] focus:ring-2 focus:ring-[#ccbeac] focus:border-transparent"
+                className="w-full px-3 sm:px-4 py-2 rounded-lg border border-[#ccbeac] focus:ring-2 focus:ring-[#ccbeac] focus:border-transparent text-sm sm:text-base"
                 required
                 disabled={loading}
               />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
                 Category Image
               </label>
@@ -209,24 +209,24 @@ export default function ProductModal({
                     <img 
                       src={preview} 
                       alt="Preview" 
-                      className="w-full h-full object-contain p-4"
+                      className="w-full h-full object-contain p-2 sm:p-4"
                     />
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                      className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"
                       disabled={loading}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3 w-3 sm:h-4 sm:w-4" />
                     </button>
                   </>
                 ) : (
                   <div 
-                    className="w-full h-full flex flex-col items-center justify-center text-[#ccbeac] cursor-pointer"
+                    className="w-full h-full flex flex-col items-center justify-center text-[#ccbeac] cursor-pointer p-4"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Image className="w-12 h-12 mb-2" />
-                    <span className="text-sm">Click to upload image</span>
+                    <Image className="w-8 h-8 sm:w-12 sm:h-12 mb-1 sm:mb-2" />
+                    <span className="text-xs sm:text-sm text-center">Click to upload image</span>
                   </div>
                 )}
               </div>
@@ -244,7 +244,7 @@ export default function ProductModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
             >
               {loading ? (
                 <span className="animate-pulse">Saving...</span>
