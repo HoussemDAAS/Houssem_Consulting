@@ -85,26 +85,42 @@ export default function AddressManagementForm({
 
   const handleUpdateSecteur = async () => {
     if (!editingSecteur) return;
-
+  
     try {
+      // Validate required fields
+      if (!newSecteur.name || !newSecteur.code) {
+        alert('Both name and code are required for updates');
+        return;
+      }
+  
       const response = await fetch(`/api/secteurs/${editingSecteur._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newSecteur),
       });
-
-      if (!response.ok) throw new Error('Failed to update secteur');
+  
+      const data = await response.json().catch(() => ({ 
+        error: 'Invalid server response' 
+      }));
+  
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update secteur');
+      }
       
-      const updatedSecteur = await response.json();
+      const updatedSecteur = data;
+      
+      // Update local state
       setLocalSecteurs(prev => 
         prev.map(s => s._id === updatedSecteur._id ? updatedSecteur : s)
       );
+      
+      // Update form value and reset state
       setValue('secteur', updatedSecteur._id);
       setEditingSecteur(null);
       setNewSecteur({ name: '', code: '' });
     } catch (error) {
       console.error('Secteur update error:', error);
-      alert('Failed to update secteur');
+      alert(error instanceof Error ? error.message : 'Failed to update secteur');
     }
   };
 
@@ -191,8 +207,8 @@ export default function AddressManagementForm({
     try {
       await onSave({
         address: data.address,
-        ville: data.ville,
-        secteur: data.secteur
+        ville: data.ville || undefined,  // Send undefined instead of empty string
+        secteur: data.secteur || undefined
       });
       onClose();
     } catch (error) {
@@ -257,7 +273,7 @@ export default function AddressManagementForm({
                           <Select
                             options={options}
                             value={options.find(o => o.value === field.value)}
-                            onChange={(option) => field.onChange(option?.value || '')}
+                            onChange={(option) => field.onChange(option?.value || undefined)} 
                             className="flex-1"
                             styles={{
                               control: (base) => ({
@@ -360,13 +376,23 @@ export default function AddressManagementForm({
                           <Select
                             options={options}
                             value={options.find(o => o.value === field.value)}
-                            onChange={(option) => field.onChange(option?.value || '')}
+                            onChange={(option) => field.onChange(option?.value || undefined)} 
                             className="flex-1"
                             styles={{
                               control: (base) => ({
                                 ...base,
                                 borderColor: '#ccbeac',
                                 minHeight: '3rem',
+                              }),
+                              menuList: (base) => ({
+                                ...base,
+                                maxHeight: '200px',
+                                overflowY: 'auto',
+                                scrollBehavior: 'smooth',
+                              }),
+                              menu: (base) => ({
+                                ...base,
+                                zIndex: 9999,
                               }),
                             }}
                           />

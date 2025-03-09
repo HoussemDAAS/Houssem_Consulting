@@ -125,24 +125,30 @@ export default function ClientBoard() {
     );
   }
 
-  return (
-    <div className=" p-4 md:p-6 space-y-6 mt-12 md:mt-0">
-      {/* Header Section */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-xl md:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-          Client Management
-        </h1>
-        
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base"
-        >
-          <PlusIcon className="h-5 w-5" />
-          <span>Add Client</span>
-        </button>
+// ClientBoard.tsx
+return (
+  <div className="flex flex-col h-full mt-12 md:mt-0">
+    {/* Fixed Header */}
+    <div className="fixed top-0 left-0 right-0 bg-white dark:bg-[#1a1a1a] z-40 border-b border-[#ccbeac]/30 md:left-64">
+  <div className="p-4 md:p-6 ml-14 md:ml-0"> {/* Added ml-14 for mobile */}
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <h1 className="text-xl md:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
+        Client Management {/* Added truncate */}
+      </h1>
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base"
+          >
+            <PlusIcon className="h-5 w-5" />
+            <span>Add Client</span>
+          </button>
+        </div>
       </div>
+    </div>
 
-
+    {/* Content Area - Added space-y-6 and original padding */}
+    <div className="pt-[76px] md:pt-[88px] flex-1 overflow-y-auto px-4 md:px-6 pb-6 space-y-6">
+      {/* Existing content */} 
       <ClientForm
         isOpen={showCreateForm}
         onClose={() => setShowCreateForm(false)}
@@ -151,36 +157,30 @@ export default function ClientBoard() {
         products={products}
       />
 
-      {/* Empty State */}
       {regions.length === 0 && (
         <div className="p-4 md:p-6 text-center border-2 border-dashed rounded-xl">
-          <p className="text-[#ccbeac] mb-4">No regions found</p>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg text-sm md:text-base"
-          >
-            Create First Region
-          </button>
+          {/* Empty state content */}
         </div>
       )}
 
-      {/* Client Groups */}
-      {groupClientsByRegion().map(([regionId, regionClients]) => (
-        <ClientRegionGroup
-          key={regionId}
-          region={regions.find(r => r._id.toString() === regionId)!}
-          clients={regionClients}
-          regions={regions}
-          products={products}
-          onEditClient={(client) => {
-            setEditingClient(client);
-            setShowEditForm(true);
-          }}
-          onDeleteClient={handleDeleteClient}
-        />
-      ))}
+      {/* Added space-y-6 to maintain region spacing */}
+      <div className="space-y-6">
+        {groupClientsByRegion().map(([regionId, regionClients]) => (
+          <ClientRegionGroup
+            key={regionId}
+            region={regions.find(r => r._id.toString() === regionId)!}
+            clients={regionClients}
+            regions={regions}
+            products={products}
+            onEditClient={(client) => {
+              setEditingClient(client);
+              setShowEditForm(true);
+            }}
+            onDeleteClient={handleDeleteClient}
+          />
+        ))}
+      </div>
 
-      {/* Edit Form */}
       {editingClient && (
         <ClientForm
           isOpen={showEditForm}
@@ -195,5 +195,6 @@ export default function ClientBoard() {
         />
       )}
     </div>
-  );
+  </div>
+);
 }

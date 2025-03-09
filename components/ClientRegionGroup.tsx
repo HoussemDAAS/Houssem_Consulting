@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Package, Pencil, Trash } from 'lucide-react';
+import { ChevronDown, ChevronRight, Package, Pencil, Trash } from 'lucide-react';
 import { ClientDocument } from '@/lib/models/Client';
 import { ProductDocument } from '@/lib/models/Product';
 import { RegionDocument } from '@/lib/models/Region';
@@ -83,12 +83,13 @@ const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete 
                 <span className="text-xs text-gray-500">#{index + 1}</span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                  <span className="text-gray-500 dark:text-gray-400">Manufacturer:</span> {p.fabriquant || '-'}
+                </div>
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">Model:</span> {p.modele || '-'}
                 </div>
-                <div>
-                  <span className="text-gray-500 dark:text-gray-400">Manufacturer:</span> {p.fabriquant || '-'}
-                </div>
+           
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">Reference:</span> {p.reference || '-'}
                 </div>
@@ -112,36 +113,41 @@ const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete 
         </div>
 
         {/* Desktop Table */}
-        <table className="hidden md:table w-full text-sm">
-          <thead>
-            <tr className="border-b border-[#ccbeac]/30">
-              <th className="text-left py-2 w-[25%]">Product</th>
-              <th className="text-left py-2">Model</th>
-              <th className="text-left py-2">Manufacturer</th>
-              <th className="text-left py-2">Reference</th>
-              <th className="text-left py-2">Range</th>
-              <th className="text-left py-2">Year</th>
-              <th className="text-left py-2">Software</th>
-              <th className="text-left py-2">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {client.products.map((p, index) => (
-              <tr key={index} className="border-b border-[#ccbeac]/10 hover:bg-gray-50 dark:hover:bg-gray-800">
-                <td className="py-2 font-medium">
-                  {p.product?.name || 'Product Not Found'}
-                </td>
-                <td className="py-2">{p.modele || '-'}</td>
-                <td>{p.fabriquant || '-'}</td>
-                <td className="py-2">{p.reference || '-'}</td>
-                <td className="py-2">{p.plageMesure || '-'}</td>
-                <td className="py-2">{p.annee || '-'}</td>
-                <td className="py-2">{p.versionLogiciel || '-'}</td>
-                <td className="text-xs max-w-[200px] truncate">{p.autreInformation || '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+  
+        <div className="hidden md:block overflow-x-auto">
+  <table className="w-full text-sm min-w-[800px]">
+    <thead>
+      <tr className="border-b border-[#ccbeac]/30">
+        <th className="text-left py-2 px-2 whitespace-nowrap">Product</th>
+        <th className="text-left py-2 px-2 whitespace-nowrap">Manufacturer</th>
+        <th className="text-left py-2 px-2 whitespace-nowrap">Model</th>
+        <th className="text-left py-2 px-2 whitespace-nowrap">Reference</th>
+        <th className="text-left py-2 px-2 whitespace-nowrap">Range</th>
+        <th className="text-left py-2 px-2 whitespace-nowrap">Year</th>
+        <th className="text-left py-2 px-2 whitespace-nowrap">Software</th>
+        <th className="text-left py-2 px-2 whitespace-nowrap min-w-[200px]">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {client.products.map((p, index) => (
+        <tr key={index} className="border-b border-[#ccbeac]/10 hover:bg-gray-50 dark:hover:bg-gray-800">
+          <td className="py-2 px-2 font-medium whitespace-nowrap">
+            {p.product?.name || 'Product Not Found'}
+          </td>
+          <td className="py-2 px-2 whitespace-nowrap">{p.fabriquant || '-'}</td>
+          <td className="py-2 px-2 whitespace-nowrap">{p.modele || '-'}</td>
+          <td className="py-2 px-2 whitespace-nowrap">{p.reference || '-'}</td>
+          <td className="py-2 px-2 whitespace-nowrap">{p.plageMesure || '-'}</td>
+          <td className="py-2 px-2 whitespace-nowrap">{p.annee || '-'}</td>
+          <td className="py-2 px-2 whitespace-nowrap">{p.versionLogiciel || '-'}</td>
+          <td className="py-2 px-2 max-w-[300px] overflow-hidden overflow-ellipsis">
+            {p.autreInformation || '-'}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
       </div>
     </motion.div>
   )}
@@ -168,6 +174,7 @@ export default function ClientRegionGroup({
   onDeleteClient
 }: ClientRegionGroupProps) {
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
+  const [isRegionOpen, setIsRegionOpen] = useState(true); // Default open
 
   const handleToggle = (clientId: string) => {
     setExpandedClient(prev => prev === clientId ? null : clientId);
@@ -175,42 +182,61 @@ export default function ClientRegionGroup({
 
   return (
     <motion.div
-    className="bg-white dark:bg-[#1a1a1a] rounded-lg shadow-sm border border-[#ccbeac]/30"
-  >
-    <div className="flex flex-col md:flex-row md:items-center justify-between p-3 md:p-4 border-b border-[#ccbeac]/30">
-      <div className="flex items-center gap-2 mb-2 md:mb-0">
-        <h2 className="text-lg md:text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
-          {region.name}
-        </h2>
-        <span className="px-2 py-1 bg-[#ccbeac] text-[#0b0b0b] rounded text-xs md:text-sm">
-          {region.code}
-        </span>
-      </div>
-      <span className="text-xs md:text-sm text-[#666] dark:text-[#999]">
-        {clients.length} client{clients.length !== 1 && 's'}
-      </span>
-    </div>
+      className="bg-white dark:bg-[#1a1a1a] rounded-lg shadow-sm border border-[#ccbeac]/30"
+      initial={{ opacity: 1 }}
+    >
+      {/* Region Header */}
+      <button
+        onClick={() => setIsRegionOpen(!isRegionOpen)}
+        className="w-full p-3 md:p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ChevronDown className={`h-5 w-5 transition-transform ${isRegionOpen ? 'rotate-180' : ''}`} />
+            <h2 className="text-lg md:text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
+              {region.name}
+            </h2>
+            <span className="px-2 py-1 bg-[#ccbeac] text-[#0b0b0b] rounded text-xs md:text-sm">
+              {region.code}
+            </span>
+          </div>
+          <span className="text-xs md:text-sm text-[#666] dark:text-[#999]">
+            {clients.length} client{clients.length !== 1 && 's'}
+          </span>
+        </div>
+      </button>
 
-      {clients.length === 0 ? (
-        <div className="p-6 text-center text-[#ccbeac]">
-          <span className="text-lg mb-2">📭</span>
-          <p className="font-medium">No clients in this region</p>
-        </div>
-      ) : (
-        <div className="divide-y divide-[#ccbeac]/30">
-          {clients.map(client => (
-            <ClientAccordion
-              key={client._id.toString()}
-              client={client}
-              products={products}
-              isOpen={expandedClient === client._id.toString()}
-              onToggle={() => handleToggle(client._id.toString())}
-              onEdit={() => onEditClient(client)}
-              onDelete={() => onDeleteClient(client._id.toString())}
-            />
-          ))}
-        </div>
-      )}
+      <AnimatePresence>
+        {isRegionOpen && (
+          <motion.div
+            initial={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            {clients.length === 0 ? (
+              <div className="p-6 text-center text-[#ccbeac]">
+                <span className="text-lg mb-2">📭</span>
+                <p className="font-medium">No clients in this region</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#ccbeac]/30">
+                {clients.map(client => (
+                  <ClientAccordion
+                    key={client._id.toString()}
+                    client={client}
+                    products={products}
+                    isOpen={expandedClient === client._id.toString()}
+                    onToggle={() => handleToggle(client._id.toString())}
+                    onEdit={() => onEditClient(client)}
+                    onDelete={() => onDeleteClient(client._id.toString())}
+                  />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

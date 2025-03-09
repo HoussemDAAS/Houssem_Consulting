@@ -137,41 +137,49 @@ export default function ClientContactBoard() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 mt-12 md:mt-0">
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-0 justify-between items-start sm:items-center">
-        <h1 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-          Contact Management
-        </h1>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg text-sm sm:text-base w-full sm:w-auto"
-        >
-          + Add Client
-        </button>
+    <div className="flex flex-col h-full mt-12 md:mt-0">
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 bg-white dark:bg-[#1a1a1a] z-40 border-b border-[#ccbeac]/30 md:left-64">
+  <div className="p-4 md:p-6 ml-14 md:ml-0"> {/* Added ml-14 for mobile */}
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <h1 className="text-xl md:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
+        Contact Management {/* Added truncate */}
+      </h1>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base"
+            >
+              + Add Client
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <ClientForm
-        isOpen={showCreateForm}
-        onClose={() => setShowCreateForm(false)}
-        refreshClients={fetchData}
-        regions={regions}
-        products={[]}
-      />
-
-      {groupClientsByRegion().map(([regionId, regionClients]) => {
-        const region = regions.find(r => r._id.toString() === regionId);
-        return region ? (
-          <ClientContactRegionGroup
-            key={regionId}
-            region={region}
-            secteurs={secteurs}
-            villes={villes}
-            clients={regionClients}
-            onSave={handleSave}
-            onSuccess={fetchData}
-          />
-        ) : null;
-      })}
+  
+      {/* Content Area */}
+      <div className="pt-[76px] md:pt-[88px] flex-1 overflow-y-auto px-4 md:px-6 pb-6 space-y-6">
+        <ClientForm
+          isOpen={showCreateForm}
+          onClose={() => setShowCreateForm(false)}
+          refreshClients={fetchData}
+          regions={regions}
+          products={[]}
+        />
+  
+        {groupClientsByRegion().map(([regionId, regionClients]) => {
+          const region = regions.find(r => r._id.toString() === regionId);
+          return region ? (
+            <ClientContactRegionGroup
+              key={regionId}
+              region={region}
+              secteurs={secteurs}
+              villes={villes}
+              clients={regionClients}
+              onSave={handleSave}
+              onSuccess={fetchData}
+            />
+          ) : null;
+        })}
+      </div>
     </div>
   );
 }

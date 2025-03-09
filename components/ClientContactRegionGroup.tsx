@@ -1,8 +1,8 @@
-// ClientContactRegionGroup.tsx
 "use client";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  ChevronDown,
   ChevronRight,
   MapPin,
   Building,
@@ -59,26 +59,20 @@ export default function ClientContactRegionGroup({
   onSave,
   onSuccess,
 }: ClientContactRegionGroupProps) {
+  const [isRegionOpen, setIsRegionOpen] = useState(true); // Region accordion state
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
-  const [editingClient, setEditingClient] = useState<EditingClient | null>(
-    null
-  );
+  const [editingClient, setEditingClient] = useState<EditingClient | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [currentLocationClient, setCurrentLocationClient] =
+  const [currentLocationClient, setCurrentLocationClient] = 
     useState<ClientDocument | null>(null);
-  const [localSecteurs, setLocalSecteurs] =
-    useState<SecteurDocument[]>(secteurs);
+  const [localSecteurs, setLocalSecteurs] = useState<SecteurDocument[]>(secteurs);
 
   useEffect(() => {
     setLocalSecteurs(secteurs);
   }, [secteurs]);
 
   // Contact handlers
-  const updateContact = (
-    index: number,
-    field: keyof Contact,
-    value: string
-  ) => {
+  const updateContact = (index: number, field: keyof Contact, value: string) => {
     if (!editingClient) return;
     const newContacts = [...editingClient.contacts];
     newContacts[index] = { ...newContacts[index], [field]: value };
@@ -178,219 +172,240 @@ export default function ClientContactRegionGroup({
       animate={{ opacity: 1, y: 0 }}
       className="bg-white dark:bg-[#1a1a1a] rounded-lg shadow-sm border border-[#ccbeac]/30"
     >
-      {/* Header - Mobile Optimized */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border-b border-[#ccbeac]/30">
-        <div className="flex items-center gap-2 mb-2 sm:mb-0">
-          <h2 className="text-lg sm:text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
-            {region.name}
-          </h2>
-          <span className="px-2 py-1 bg-[#ccbeac] text-[#0b0b0b] rounded text-xs sm:text-sm">
-            {region.code}
+      {/* Region Accordion Header */}
+      <button
+        onClick={() => setIsRegionOpen(!isRegionOpen)}
+        className="w-full p-3 sm:p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d] border-b border-[#ccbeac]/30"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ChevronDown
+              className={`h-5 w-5 transition-transform ${
+                isRegionOpen ? "rotate-180" : ""
+              }`}
+            />
+            <h2 className="text-lg sm:text-xl font-semibold text-[#0b0b0b] dark:text-[#f9f9f4]">
+              {region.name}
+            </h2>
+            <span className="px-2 py-1 bg-[#ccbeac] text-[#0b0b0b] rounded text-xs sm:text-sm">
+              {region.code}
+            </span>
+          </div>
+          <span className="text-xs sm:text-sm text-[#666] dark:text-[#999]">
+            {clients.length} client{clients.length !== 1 && "s"}
           </span>
         </div>
-        <span className="text-xs sm:text-sm text-[#666] dark:text-[#999]">
-          {clients.length} client{clients.length !== 1 && 's'}
-        </span>
-      </div>
-  
-      {clients.length === 0 ? (
-        <div className="p-4 sm:p-6 text-center text-[#ccbeac] text-sm sm:text-base">
-          <span className="text-lg mb-2">📭</span>
-          <p className="font-medium">No clients in this region</p>
-        </div>
-      ) : (
-        <div className="divide-y divide-[#ccbeac]/30">
-          {clients.map((client) => {
-            const isEditingContacts = editingClient?.id === client._id.toString();
-  
-            return (
-              <div key={client._id.toString()} className="border-b border-[#ccbeac]/30">
-                {/* Client Header - Mobile Friendly */}
-                <div className="flex items-center p-3 sm:p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]">
-                  <button
-                    onClick={() => handleToggle(client._id.toString())}
-                    className="w-8 h-8 flex items-center justify-center mr-2"
-                  >
-                    <ChevronRight
-                      className={`h-5 w-5 transition-transform ${
-                        expandedClient === client._id.toString() ? 'rotate-90' : ''
-                      }`}
-                    />
-                  </button>
-  
-                  <div className="flex-1 flex items-center gap-2 min-w-0">
-                    <h3 className="text-base sm:text-lg font-semibold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
-                      {client.name}
-                    </h3>
-                    <div className="flex items-center gap-1 ml-auto">
-                      <button
-                        onClick={() => handleLocationEdit(client)}
-                        className="p-1.5 hover:bg-[#ccbeac]/20 rounded-full"
-                        title="Edit location"
-                      >
-                        <MapPin className="h-5 w-5 text-[#ccbeac]" />
-                      </button>
-                      {!isEditingContacts && (
-                        <button
-                          onClick={() => startContactEditing(client)}
-                          className="p-1.5 hover:bg-[#ccbeac]/20 rounded-full"
-                          title="Edit contacts"
-                        >
-                          <Pencil className="h-5 w-5 text-[#ccbeac]" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-  
-                <AnimatePresence>
-                  {expandedClient === client._id.toString() && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
+      </button>
+
+      <AnimatePresence>
+        {isRegionOpen && (
+          <motion.div
+            initial={{ opacity: 1, height: "auto" }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            {clients.length === 0 ? (
+              <div className="p-4 sm:p-6 text-center text-[#ccbeac] text-sm sm:text-base">
+                <span className="text-lg mb-2">📭</span>
+                <p className="font-medium">No clients in this region</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#ccbeac]/30">
+                {clients.map((client) => {
+                  const isEditingContacts =
+                    editingClient?.id === client._id.toString();
+
+                  return (
+                    <div
+                      key={client._id.toString()}
+                      className="border-b border-[#ccbeac]/30"
                     >
-                      {/* Location Info - Stacked on Mobile */}
-                      <div className="px-4 pb-4 ml-10 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div className="flex items-center gap-2 text-sm">
-                            <MapPin className="h-5 w-5 text-[#ccbeac] flex-shrink-0" />
-                            <span className="truncate">{client.address || '-'}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-[#ccbeac]">🏙️</span>
-                            <span className="truncate">{getVilleName(client)}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Building className="h-5 w-5 text-[#ccbeac] flex-shrink-0" />
-                            <span className="truncate">{getSecteurName(client)}</span>
-                          </div>
-                        </div>
-  
-                        {/* Contacts Section - Mobile Optimized */}
-                        <div className="mt-3">
-                          <h4 className="text-base font-semibold mb-2 flex items-center gap-2">
-                            <User className="h-5 w-5" />
-                            Contacts ({(client.contacts || []).length})
-                          </h4>
-  
-                          <div className="border rounded-lg overflow-hidden dark:border-gray-700">
-                            {/* Mobile Table Header (Hidden on desktop) */}
-                            <div className="sm:hidden p-2 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
-                              <span className="font-medium text-sm">Contact Details</span>
-                            </div>
-  
-                            {/* Contacts List - Mobile First */}
-                            <div className="space-y-2 p-2">
-                              {(isEditingContacts ? editingClient.contacts : client.contacts || []).map((contact, index) => (
-                                <div key={contact._id || `new-${index}`} className="group">
-                                  {isEditingContacts ? (
-                                    <div className="space-y-2 p-2 border-b dark:border-gray-700">
-                                      {/* Editable Fields - Stacked on Mobile */}
-                                      {['firstName', 'lastName', 'position', 'email', 'phone', 'service'].map((field) => (
-                                        <div key={field} className="space-y-1">
-                                          <label className="text-xs text-[#ccbeac] capitalize">
-                                            {field.replace(/([A-Z])/g, ' $1')}
-                                          </label>
-                                          <input
-                                            value={contact[field] || ''}
-                                            onChange={(e) => updateContact(index, field, e.target.value)}
-                                            className="w-full p-1.5 text-sm border rounded dark:bg-gray-800"
-                                            placeholder={field.replace(/([A-Z])/g, ' $1')}
-                                          />
-                                        </div>
-                                      ))}
-                                      <div className="flex justify-end gap-2 mt-2">
-                                        <button
-                                          onClick={() => deleteContact(index)}
-                                          className="p-1.5 text-red-500 hover:bg-red-100/20 rounded"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="p-2 border-b dark:border-gray-700">
-                                      {/* Read-only Mobile View */}
-                                      <div className="flex justify-between items-start">
-                                        <div className="space-y-1">
-                                          <div className="font-medium">
-                                            {contact.firstName} {contact.lastName}
-                                          </div>
-                                          <div className="text-xs text-gray-600 dark:text-gray-400">
-                                            {contact.position} • {contact.service}
-                                          </div>
-                                          <div className="text-xs">
-                                            {contact.email || 'No email'} | {contact.phone || 'No phone'}
-                                          </div>
-                                        </div>
-                                        <div className="flex gap-1">
-                                          <button
-                                            onClick={() => startContactEditing(client)}
-                                            className="text-[#ccbeac] hover:bg-[#ccbeac]/20 p-1 rounded"
-                                          >
-                                            <Pencil className="h-4 w-4" />
-                                          </button>
-                                          <button
-                                            onClick={() => {
-                                              startContactEditing(client);
-                                              deleteContact(index);
-                                            }}
-                                            className="text-red-500 hover:bg-red-100/20 p-1 rounded"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-  
-                            {/* Edit Mode Controls - Stacked on Mobile */}
-                            {isEditingContacts && (
-                              <div className="p-2 border-t dark:border-gray-700">
-                                <div className="flex flex-col sm:flex-row justify-between gap-2">
-                                  <button
-                                    onClick={addNewContact}
-                                    className="text-stone-600 hover:underline flex items-center gap-2 text-sm px-2 py-1.5"
-                                  >
-                                    <UserPlus className="h-4 w-4" />
-                                    Add Contact
-                                  </button>
-                                  <div className="flex flex-col sm:flex-row gap-2">
-                                    <button
-                                      onClick={() => setEditingClient(null)}
-                                      className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded flex items-center gap-2 text-sm dark:text-gray-300"
-                                    >
-                                      <X className="h-4 w-4" />
-                                      Cancel
-                                    </button>
-                                    <button
-                                      onClick={handleSaveContacts}
-                                      className="px-3 py-1.5 bg-[#ccbeac] text-[#0b0b0b] rounded flex items-center gap-2 hover:bg-[#ccbeac]/90 text-sm"
-                                    >
-                                      <Save className="h-4 w-4" />
-                                      Save
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
+                      {/* Client Header */}
+                      <div className="flex items-center p-3 sm:p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]">
+                        <button
+                          onClick={() => handleToggle(client._id.toString())}
+                          className="w-8 h-8 flex items-center justify-center mr-2"
+                        >
+                          <ChevronRight
+                            className={`h-5 w-5 transition-transform ${
+                              expandedClient === client._id.toString()
+                                ? "rotate-90"
+                                : ""
+                            }`}
+                          />
+                        </button>
+
+                        <div className="flex-1 flex items-center gap-2 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
+                            {client.name}
+                          </h3>
+                          <div className="flex items-center gap-1 ml-auto">
+                            <button
+                              onClick={() => handleLocationEdit(client)}
+                              className="p-1.5 hover:bg-[#ccbeac]/20 rounded-full"
+                              title="Edit location"
+                            >
+                              <MapPin className="h-5 w-5 text-[#ccbeac]" />
+                            </button>
+                            {!isEditingContacts && (
+                              <button
+                                onClick={() => startContactEditing(client)}
+                                className="p-1.5 hover:bg-[#ccbeac]/20 rounded-full"
+                                title="Edit contacts"
+                              >
+                                <Pencil className="h-5 w-5 text-[#ccbeac]" />
+                              </button>
                             )}
                           </div>
                         </div>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+
+                      <AnimatePresence>
+                        {expandedClient === client._id.toString() && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                          >
+                            {/* Location Info */}
+                            <div className="px-4 pb-4 ml-10 space-y-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <MapPin className="h-5 w-5 text-[#ccbeac] flex-shrink-0" />
+                                  <span className="truncate">{client.address || '-'}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className="text-[#ccbeac]">🏙️</span>
+                                  <span className="truncate">{getVilleName(client)}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Building className="h-5 w-5 text-[#ccbeac] flex-shrink-0" />
+                                  <span className="truncate">{getSecteurName(client)}</span>
+                                </div>
+                              </div>
+
+                              {/* Contacts Section */}
+                              <div className="mt-3">
+                                <h4 className="text-base font-semibold mb-2 flex items-center gap-2">
+                                  <User className="h-5 w-5" />
+                                  Contacts ({(client.contacts || []).length})
+                                </h4>
+
+                                <div className="border rounded-lg overflow-hidden dark:border-gray-700">
+                                  <div className="sm:hidden p-2 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+                                    <span className="font-medium text-sm">Contact Details</span>
+                                  </div>
+
+                                  <div className="space-y-2 p-2">
+                                    {(isEditingContacts ? editingClient.contacts : client.contacts || []).map((contact, index) => (
+                                      <div key={contact._id || `new-${index}`} className="group">
+                                        {isEditingContacts ? (
+                                          <div className="space-y-2 p-2 border-b dark:border-gray-700">
+                                            {['firstName', 'lastName', 'position', 'email', 'phone', 'service'].map((field) => (
+                                              <div key={field} className="space-y-1">
+                                                <label className="text-xs text-[#ccbeac] capitalize">
+                                                  {field.replace(/([A-Z])/g, ' $1')}
+                                                </label>
+                                                <input
+                                                  value={contact[field] || ''}
+                                                  onChange={(e) => updateContact(index, field, e.target.value)}
+                                                  className="w-full p-1.5 text-sm border rounded dark:bg-gray-800"
+                                                  placeholder={field.replace(/([A-Z])/g, ' $1')}
+                                                />
+                                              </div>
+                                            ))}
+                                            <div className="flex justify-end gap-2 mt-2">
+                                              <button
+                                                onClick={() => deleteContact(index)}
+                                                className="p-1.5 text-red-500 hover:bg-red-100/20 rounded"
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </button>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="p-2 border-b dark:border-gray-700">
+                                            <div className="flex justify-between items-start">
+                                              <div className="space-y-1">
+                                                <div className="font-medium">
+                                                  {contact.firstName} {contact.lastName}
+                                                </div>
+                                                <div className="text-xs text-gray-600 dark:text-gray-400">
+                                                  {contact.position} • {contact.service}
+                                                </div>
+                                                <div className="text-xs">
+                                                  {contact.email || 'No email'} | {contact.phone || 'No phone'}
+                                                </div>
+                                              </div>
+                                              <div className="flex gap-1">
+                                                <button
+                                                  onClick={() => startContactEditing(client)}
+                                                  className="text-[#ccbeac] hover:bg-[#ccbeac]/20 p-1 rounded"
+                                                >
+                                                  <Pencil className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                  onClick={() => {
+                                                    startContactEditing(client);
+                                                    deleteContact(index);
+                                                  }}
+                                                  className="text-red-500 hover:bg-red-100/20 p-1 rounded"
+                                                >
+                                                  <Trash2 className="h-4 w-4" />
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {isEditingContacts && (
+                                    <div className="p-2 border-t dark:border-gray-700">
+                                      <div className="flex flex-col sm:flex-row justify-between gap-2">
+                                        <button
+                                          onClick={addNewContact}
+                                          className="text-stone-600 hover:underline flex items-center gap-2 text-sm px-2 py-1.5"
+                                        >
+                                          <UserPlus className="h-4 w-4" />
+                                          Add Contact
+                                        </button>
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                          <button
+                                            onClick={() => setEditingClient(null)}
+                                            className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded flex items-center gap-2 text-sm dark:text-gray-300"
+                                          >
+                                            <X className="h-4 w-4" />
+                                            Cancel
+                                          </button>
+                                          <button
+                                            onClick={handleSaveContacts}
+                                            className="px-3 py-1.5 bg-[#ccbeac] text-[#0b0b0b] rounded flex items-center gap-2 hover:bg-[#ccbeac]/90 text-sm"
+                                          >
+                                            <Save className="h-4 w-4" />
+                                            Save
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {currentLocationClient && (
         <AddressSecteurForm

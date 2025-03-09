@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Updated Client Schema (lib/models/Client.ts)
 // Keep only these:
 import { Schema, model, models, Document } from 'mongoose';
@@ -46,11 +47,25 @@ const ClientSchema = new Schema<ClientDocument>({
     type: Schema.Types.ObjectId,
     ref: 'Ville',
     default: null,
+    validate: {
+      validator: (v: any) => {
+        if (v === null || v === undefined) return true;
+        return mongoose.Types.ObjectId.isValid(v);
+      },
+      message: 'Invalid ville reference'
+    }
   },
   secteur: { 
     type: Schema.Types.ObjectId,
     ref: 'Secteur',
     default: null,
+    validate: {
+      validator: (v: any) => {
+        if (v === null || v === undefined) return true;
+        return mongoose.Types.ObjectId.isValid(v);
+      },
+      message: 'Invalid secteur reference'
+    }
   },
   contacts: {
     type: [{
