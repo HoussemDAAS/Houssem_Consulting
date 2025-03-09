@@ -21,6 +21,7 @@ interface ClientFormProps {
 type FormData = {
   name: string;
   region: string;
+  status: 'Agreed' | 'In Progress' | 'Refused' | '';
   products: Array<{
     product: string;
     fabriquant: string;
@@ -53,6 +54,7 @@ export default function ClientForm({
     defaultValues: {
       name: '',
       region: '',
+      status: '',
       products: [],
     },
   });
@@ -71,6 +73,7 @@ export default function ClientForm({
       reset({
         name: client.name,
         region: client.region._id.toString(),
+        status: client.status || '',
         products: client.products.map(p => ({
           ...p,
           product: (p.product as any)._id.toString(),
@@ -151,6 +154,7 @@ export default function ClientForm({
       const cleanedData = {
         name: data.name,
         region: data.region,
+        status: data.status,
         products: data.products.map(p => ({
           product: p.product,
           fabriquant: p.fabriquant,
@@ -280,6 +284,28 @@ export default function ClientForm({
                       {errors.region && <p className="text-red-500 text-xs sm:text-sm mt-1">Region is required</p>}
                     </div>
                   </div>
+                  <div className="space-y-2 sm:space-y-4">
+    <div>
+      <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
+        Status
+      </label>
+      <Controller
+        name="status"
+        control={control}
+        render={({ field }) => (
+          <select
+            {...field}
+            className="w-full p-2 sm:p-3 rounded-lg border border-[#ccbeac] bg-white dark:bg-[#1a1a1a] text-sm sm:text-base h-[42px] sm:h-[48px]"
+          >
+            <option value="">Select Status</option>
+            <option value="Agreed">Agreed</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Refused">Refused</option>
+          </select>
+        )}
+      />
+    </div>
+  </div>
                 </div>
               </div>
 

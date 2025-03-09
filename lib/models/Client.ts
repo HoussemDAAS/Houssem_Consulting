@@ -36,6 +36,7 @@ export interface ClientDocument extends Document {
   contacts: Contact[];
   products: ClientProduct[];
   createdAt: Date;
+  status: 'Agreed' | 'In Progress' | 'Refused' | '';
 }
 
 
@@ -43,6 +44,11 @@ const ClientSchema = new Schema<ClientDocument>({
   name: { type: String, required: true },
   region: { type: Schema.Types.ObjectId, ref: 'Region', required: true },
   address: { type: String, default: '' },
+  status: {
+    type: String,
+    enum: ['Agreed', 'In Progress', 'Refused', ''],
+    default: ''
+  },
   ville: {
     type: Schema.Types.ObjectId,
     ref: 'Ville',

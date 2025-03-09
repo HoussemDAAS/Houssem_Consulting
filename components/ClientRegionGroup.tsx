@@ -14,7 +14,12 @@ interface ClientAccordionProps {
   onEdit: () => void;
   onDelete: () => void;
 }
-
+const statusColors = {
+  'Agreed': 'bg-green-500',
+  'In Progress': 'bg-orange-500',
+  'Refused': 'bg-red-500',
+  '': 'bg-gray-400',
+};
 const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete }: ClientAccordionProps) => {
   return (
     <div className="border-b border-[#ccbeac]/30">
@@ -29,9 +34,20 @@ const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete 
   <div className="flex items-center gap-2 md:gap-4 w-full min-w-0">
     <div className="flex-1 min-w-0">
       <button onClick={onEdit} className="text-left w-full truncate">
-        <h3 className="text-base md:text-xl font-semibold truncate">
-          {client.name}
-        </h3>
+      <div className="flex items-center gap-2 flex-1">
+      <motion.div
+  initial={{ scale: 1 }}
+  animate={{ scale: 1.1 }}
+  transition={{
+    repeat: Infinity,
+    repeatType: "mirror",
+    duration: 0.8,
+    ease: "easeInOut"
+  }}
+  className={`w-3 h-3 rounded-full ${statusColors[client.status]}`}
+/>
+          <h3 className="font-semibold truncate">{client.name}</h3>
+        </div>
       </button>
       <div className="flex items-center gap-1 mt-1 truncate">
         <Package className="h-3 w-3 md:h-4 md:w-4 text-[#ccbeac] flex-shrink-0" />

@@ -26,6 +26,7 @@ export async function PUT(
         $set: {
           ...body,
           secteur: body.secteur || null,
+          status: body.status || '',
           ville: body.ville || null,
           contacts: body.contacts?.map((c: any) => ({
             firstName: c.firstName || '',

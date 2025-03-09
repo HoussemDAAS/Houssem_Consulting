@@ -79,6 +79,7 @@ export async function POST(request: Request) {
       name: body.name,
       region: body.region,
       ville: body.ville || null,
+      status: body.status || '',
       
       products: transformedProducts
     });
