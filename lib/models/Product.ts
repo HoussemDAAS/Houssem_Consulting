@@ -40,13 +40,13 @@ const ProductSchema = new Schema<ProductDocument>({
   }
 });
 
-// Handle legacy documents without image field
+
 ProductSchema.pre('save', function(next) {
   if (!this.image) this.image = '';
   next();
 });
 
-// Indexes for common queries
+
 ProductSchema.index({ name: 1 }, { unique: true });
 ProductSchema.index({ createdAt: -1 });
 

@@ -14,7 +14,7 @@ export const authOptions: AuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-  // In the CredentialsProvider:
+
 async authorize(credentials) {
   try {
     await clientPromise;

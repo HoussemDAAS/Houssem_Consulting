@@ -90,7 +90,7 @@ export default function AddressManagementForm({
     if (!editingSecteur) return;
   
     try {
-      // Validate required fields
+ 
       if (!newSecteur.name || !newSecteur.code) {
         alert('Both name and code are required for updates');
         return;
@@ -112,7 +112,7 @@ export default function AddressManagementForm({
       
       const updatedSecteur = data;
       
-      // Update local state
+ 
       setLocalSecteurs(prev => 
         prev.map(s => s._id === updatedSecteur._id ? updatedSecteur : s)
       );
@@ -215,7 +215,7 @@ export default function AddressManagementForm({
     try {
       await onSave({
         address: data.address,
-        ville: data.ville || undefined,  // Send undefined instead of empty string
+        ville: data.ville || undefined, 
         secteur: data.secteur || undefined
       });
       onClose();

@@ -67,7 +67,7 @@ export default function ClientBoard() {
   const groupClientsByRegion = () => {
     const grouped = new Map<string, ClientDocument[]>();
     
-    // Create groups only for regions with clients
+
     clients.forEach(client => {
       const regionId = client.region?._id?.toString();
       if (regionId) {
@@ -88,7 +88,7 @@ export default function ClientBoard() {
       });
   
       if (!response.ok) throw new Error('Failed to delete client');
-      await fetchData(); // Refresh the list
+      await fetchData(); 
     } catch (error) {
       console.error('Delete error:', error);
       setError('Failed to delete client. Please try again.');
@@ -125,22 +125,22 @@ export default function ClientBoard() {
     );
   }
 
-// ClientBoard.tsx
+
 return (
   <div className="flex flex-col h-full mt-12 md:mt-0">
     {/* Fixed Header */}
     <div className="fixed top-0 left-0 right-0 bg-white dark:bg-[#1a1a1a] z-40 border-b border-[#ccbeac]/30 md:left-64">
-  <div className="p-4 md:p-6 ml-14 md:ml-0"> {/* Added ml-14 for mobile */}
+  <div className="p-4 md:p-6 ml-14 md:ml-0"> 
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <h1 className="text-xl md:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
-        Client Management {/* Added truncate */}
+        Costumer Management 
       </h1>
           <button
             onClick={() => setShowCreateForm(true)}
             className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base"
           >
             <PlusIcon className="h-5 w-5" />
-            <span>Add Client</span>
+            <span>Add Costumer</span>
           </button>
         </div>
       </div>

@@ -4,12 +4,12 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Client from '@/lib/models/Client';
 
-// app/api/clients/[id]/route.ts
+
 
 
 import mongoose from 'mongoose';
 
-// app/api/clients/[id]/route.ts
+
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }

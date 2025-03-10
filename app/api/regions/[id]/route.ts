@@ -19,12 +19,11 @@ export async function DELETE(
       );
     }
 
-    // Update clients with this region to 'Unassigned'
+    
     await Client.updateMany(
       { region: params.id },
       { $set: { region: null } }
     );
-
     const deletedRegion = await Region.findByIdAndDelete(params.id);
     
     if (!deletedRegion) {

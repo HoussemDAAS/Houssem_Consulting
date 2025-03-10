@@ -26,7 +26,7 @@ async function dbConnect(): Promise<typeof mongoose> {
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI).then(mongoose => {
-      // Register models after connection
+
       require('@/lib/models/Region');
       require('@/lib/models/Client');
       require('@/lib/models/Product');

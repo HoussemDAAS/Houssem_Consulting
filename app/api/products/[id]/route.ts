@@ -32,7 +32,7 @@ export async function PUT(
     const updateData = {
       name: body.name.trim(),
       image: body.image || existingProduct.image || '',
-      // Add other fields here if needed
+   
     };
 
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -75,7 +75,6 @@ export async function DELETE(
       );
     }
 
-    // Remove references from clients
     await Client.updateMany(
       { 'products.product': params.id },
       { $pull: { products: { product: params.id } } }

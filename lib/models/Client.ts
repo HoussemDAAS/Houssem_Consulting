@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// Updated Client Schema (lib/models/Client.ts)
-// Keep only these:
+
 import { Schema, model, models, Document } from 'mongoose';
-import './Secteur';  // Import for side effects
-import './Ville';    // Import for side effects
-import './Region';   // Import for side effects
+import './Secteur';  
+import './Ville';   
+import './Region';   
 import './Product';
 interface Contact {
   firstName: string;

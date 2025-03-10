@@ -63,7 +63,7 @@ export default function LoginPage() {
       {/* Left Section */}
       <div className="lg:w-1/2 flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
         <div className="space-y-6 max-w-xs">
-          {/* Centered Logo Stack */}
+      
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

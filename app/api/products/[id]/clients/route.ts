@@ -2,15 +2,14 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Client from '@/lib/models/Client';
-// app/api/products/[id]/clients/route.ts
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     await dbConnect();
-    
-    // Validate product ID format
+ 
     if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
       return NextResponse.json(
         { error: 'Invalid product ID format' },

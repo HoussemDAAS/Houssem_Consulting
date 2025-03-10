@@ -206,7 +206,7 @@ export default function ClientForm({
                 <div className="pb-4 sm:pb-6">
                   <div className="flex justify-between items-center pb-3 sm:pb-4 ">
                     <h2 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-                      {client ? 'Edit Client' : 'New Client'}
+                      {client ? 'Edit Costumer' : 'New Costumer'}
                     </h2>
                     <button type="button" onClick={onClose} className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75">
                       <XMarkIcon className="h-6 w-6 sm:h-7 sm:w-7" />

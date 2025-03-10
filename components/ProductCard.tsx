@@ -1,4 +1,4 @@
-// components/ProductCard.tsx
+
 'use client';
 import { ProductDocument } from '@/lib/models/Product';
 import { motion } from 'framer-motion';
@@ -16,7 +16,7 @@ export default function ProductCard({
 }) {
   return (
     <motion.div
-      whileHover={{ scale: 1.01 }} // Reduced from 1.02
+      whileHover={{ scale: 1.01 }}
       onClick={onClick}
       className="group bg-[#f9f9f4] dark:bg-[#0b0b0b] rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden border border-[#ccbeac]/30"
     >
@@ -38,8 +38,8 @@ export default function ProductCard({
         )}
       </div>
 
-      <div className="p-2"> {/* Reduced from p-3 */}
-        <div className="flex items-center justify-between gap-1"> {/* Reduced gap */}
+      <div className="p-2">
+        <div className="flex items-center justify-between gap-1"> 
           <h3 className="text-xs sm:text-sm font-medium text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
             {product.name}
           </h3>
@@ -49,13 +49,13 @@ export default function ProductCard({
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
               className="p-1 text-[#0b0b0b] dark:text-[#ccbeac] hover:text-[#ccbeac] dark:hover:text-[#f9f9f4]"
             >
-              <Edit3 className="h-3.5 w-3.5" /> {/* Reduced from h-4 w-4 */}
+              <Edit3 className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
               className="p-1 text-red-600 hover:text-red-800"
             >
-              <Trash2 className="h-3.5 w-3.5" /> {/* Reduced from h-4 w-4 */}
+              <Trash2 className="h-3.5 w-3.5" /> 
             </button>
           </div>
         </div>

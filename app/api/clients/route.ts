@@ -37,13 +37,13 @@ export async function GET(request: Request) {
     })
     .lean();
 
-    // Handle legacy documents without ville
+
     const safeClients = clients.map(client => ({
       ...client,
       ville: client.ville || null,
       products: client.products.map(product => ({
         ...product,
-        status: product.status || 'negotiation' // Default in response
+        status: product.status || 'negotiation' 
       }))
     }));
     
@@ -60,7 +60,6 @@ export async function GET(request: Request) {
   }
 }
 
-// app/api/clients/route.ts
 export async function POST(request: Request) {
   await dbConnect();
   try {
@@ -68,7 +67,7 @@ export async function POST(request: Request) {
     
     const transformedProducts = body.products?.map((p: any) => ({
       product: p.product,
-      fabriquant: p.fabriquant || '', // Keep this
+      fabriquant: p.fabriquant || '', 
       modele: p.modele || '',
       status: p.status || 'negotiation',
       reference: p.reference || '',
@@ -76,7 +75,7 @@ export async function POST(request: Request) {
       annee: p.annee || '',
       versionLogiciel: p.versionLogiciel || '',
       autreInformation: p.autreInformation || '',
-      // Remove the details field completely
+    
       addedAt: p.addedAt || new Date()
     }));
 
@@ -93,7 +92,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       await Client.populate(client, [
         { path: 'region' },
-        { path: 'ville' }, // Add this
+        { path: 'ville' }, 
         { path: 'products.product' }
       ]), 
       { status: 201 }

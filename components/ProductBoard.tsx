@@ -18,7 +18,7 @@ export default function ProductBoard() {
 
 
 
- // components/ProductBoard.tsx
+
 const fetchProducts = async () => {
   try {
     const res = await fetch(`/api/products?timestamp=${Date.now()}`, {
@@ -73,12 +73,12 @@ const fetchProducts = async () => {
     );
   }
 
-// ProductBoard.tsx
+
 return (
   <div className="flex flex-col h-full">
     {/* Fixed Header */}
     <div className="fixed top-0 left-0 right-0 bg-white dark:bg-[#1a1a1a] z-40 border-b border-[#ccbeac]/30 md:left-64">
-  <div className="p-4 md:p-6 ml-14 md:ml-0"> {/* Added ml-14 for mobile */}
+  <div className="p-4 md:p-6 ml-14 md:ml-0"> 
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <h1 className="text-xl md:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
         product Management {/* Added truncate */}

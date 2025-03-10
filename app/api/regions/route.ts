@@ -86,7 +86,7 @@ export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
     
-    // Check if any clients are using this region
+
     const clientCount = await Client.countDocuments({ region: id });
     if (clientCount > 0) {
       return NextResponse.json(

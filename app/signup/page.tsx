@@ -54,7 +54,7 @@ const onSubmit = async (data: SignupFormData) => {
       throw new Error(result.error);
     }
 
-    // Automatically login after signup
+
     const loginResponse = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
