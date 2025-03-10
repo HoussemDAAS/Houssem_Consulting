@@ -40,7 +40,11 @@ export async function GET(request: Request) {
     // Handle legacy documents without ville
     const safeClients = clients.map(client => ({
       ...client,
-      ville: client.ville || null
+      ville: client.ville || null,
+      products: client.products.map(product => ({
+        ...product,
+        status: product.status || 'negotiation' // Default in response
+      }))
     }));
     
     return NextResponse.json(safeClients, { 
@@ -66,6 +70,7 @@ export async function POST(request: Request) {
       product: p.product,
       fabriquant: p.fabriquant || '', // Keep this
       modele: p.modele || '',
+      status: p.status || 'negotiation',
       reference: p.reference || '',
       plageMesure: p.plageMesure || '',
       annee: p.annee || '',
@@ -79,7 +84,7 @@ export async function POST(request: Request) {
       name: body.name,
       region: body.region,
       ville: body.ville || null,
-      status: body.status || '',
+
       
       products: transformedProducts
     });

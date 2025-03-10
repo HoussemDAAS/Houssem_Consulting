@@ -34,21 +34,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate JWT token
+
     const token = jwt.sign(
       { userId: user._id.toString(),role: user.role },
       process.env.JWT_SECRET!,
       { expiresIn: '7d' }
     );
 
-   // Add this after successful login
 return NextResponse.json({
   success: true,
   user: {
     id: user._id,
     name: user.name,
     email: user.email,
-    role: user.role, // Make sure role is included
+    role: user.role, 
     token
   }
 });

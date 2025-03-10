@@ -21,7 +21,6 @@ interface ClientFormProps {
 type FormData = {
   name: string;
   region: string;
-  status: 'Agreed' | 'In Progress' | 'Refused' | '';
   products: Array<{
     product: string;
     fabriquant: string;
@@ -31,6 +30,7 @@ type FormData = {
     annee: string;
     versionLogiciel: string;
     autreInformation: string;
+    status: 'negotiation' | 'closed-won' | 'closed-lost' | 'closed-declined';
     addedAt: Date;
   }>;
 };
@@ -54,7 +54,6 @@ export default function ClientForm({
     defaultValues: {
       name: '',
       region: '',
-      status: '',
       products: [],
     },
   });
@@ -73,13 +72,17 @@ export default function ClientForm({
       reset({
         name: client.name,
         region: client.region._id.toString(),
-        status: client.status || '',
         products: client.products.map(p => ({
           ...p,
           product: (p.product as any)._id.toString(),
-          fabriquant: (p as any).fabriquant || '',
-          autreInformation: (p as any).autreInformation || 
-            ((p as any).details?.map((d: any) => `${d.name}: ${d.value}`).join('\n') || ''),
+          fabriquant: p.fabriquant || '',
+          modele: p.modele || '',
+          status: p.status || 'negotiation',
+          reference: p.reference || '',
+          plageMesure: p.plageMesure || '',
+          annee: p.annee || '',
+          versionLogiciel: p.versionLogiciel || '',
+          autreInformation: p.autreInformation || '',
           addedAt: p.addedAt || new Date()
         })),
       });
@@ -93,9 +96,8 @@ export default function ClientForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRegion),
       });
-
-      if (!response.ok) throw new Error('Failed to create region');
       
+      if (!response.ok) throw new Error('Failed to create region');
       const createdRegion = await response.json();
       setValue('region', createdRegion._id);
       setShowRegionForm(false);
@@ -116,7 +118,6 @@ export default function ClientForm({
       });
   
       if (!response.ok) throw new Error('Failed to update region');
-      
       const updatedRegion = await response.json();
       setValue('region', updatedRegion._id);
       setEditingRegion(null);
@@ -130,14 +131,9 @@ export default function ClientForm({
 
   const handleDeleteRegion = async (regionId: string) => {
     if (!confirm('Delete this region? Clients using it will need to be updated.')) return;
-    
     try {
-      const response = await fetch(`/api/regions/${regionId}`, {
-        method: 'DELETE',
-      });
-  
+      const response = await fetch(`/api/regions/${regionId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete region');
-      
       refreshClients();
     } catch (error) {
       console.error('Deletion error:', error);
@@ -150,15 +146,14 @@ export default function ClientForm({
     try {
       const url = client ? `/api/clients/${client._id}` : '/api/clients';
       const method = client ? 'PUT' : 'POST';
-
       const cleanedData = {
         name: data.name,
         region: data.region,
-        status: data.status,
         products: data.products.map(p => ({
           product: p.product,
           fabriquant: p.fabriquant,
           modele: p.modele,
+          status: p.status,
           reference: p.reference,
           plageMesure: p.plageMesure,
           annee: p.annee,
@@ -206,115 +201,81 @@ export default function ClientForm({
             onClick={(e) => e.stopPropagation()}
           >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-              {/* Sticky Header Section */}
-              <div className="sticky top-0 bg-white dark:bg-[#0b0b0b] z-20 pb-4 sm:pb-6">
-                <div className="flex justify-between items-center pb-3 sm:pb-4">
-                  <h2 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-                    {client ? 'Edit Costumer Profile' : 'New Costumer Profile'}
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75"
-                  >
-                    <XMarkIcon className="h-6 w-6 sm:h-7 sm:w-7" />
-                  </button>
-                </div>
-
-                {/* Sticky Form Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-2 sm:space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
-                        Costumer Name *
-                      </label>
-                      <input
-                        {...register('name', { required: 'Required field' })}
-                        className={`w-full p-2 sm:p-3 rounded-lg border ${
-                          errors.name ? 'border-red-500' : 'border-[#ccbeac]'
-                        } text-sm sm:text-base`}
-                      />
-                      {errors.name && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.name.message}</p>}
-                    </div>
+              {/* Main Header */}
+              <div className="sticky -top-6 bg-white dark:bg-[#0b0b0b] z-50 border-b border-[#ccbeac]/30 pt-5">
+                <div className="pb-4 sm:pb-6">
+                  <div className="flex justify-between items-center pb-3 sm:pb-4 ">
+                    <h2 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
+                      {client ? 'Edit Client' : 'New Client'}
+                    </h2>
+                    <button type="button" onClick={onClose} className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75">
+                      <XMarkIcon className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
                   </div>
 
-                  <div className="space-y-2 sm:space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
-                        Region *
-                      </label>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <Controller
-                          name="region"
-                          control={control}
-                          rules={{ required: 'Select a region' }}
-                          render={({ field }) => {
-                            const options = regions.map(r => ({
-                              value: r._id.toString(),
-                              label: `${r.name} (${r.code})`,
-                            }));
-                            return (
-                              <Select
-                                options={options}
-                                value={options.find(o => o.value === field.value)}
-                                onChange={(option) => field.onChange(option?.value || '')}
-                                className="flex-1 w-full"
-                                styles={{
-                                  control: (base) => ({
-                                    ...base,
-                                    borderColor: errors.region ? '#ef4444' : '#ccbeac',
-                                    minHeight: '2.5rem',
-                                    fontSize: '14px',
-                                  }),
-                                  menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                }}
-                                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                              />
-                            );
-                          }}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="space-y-2 sm:space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Name *</label>
+                        <input
+                          {...register('name', { required: 'Required field' })}
+                          className={`w-full p-2 sm:p-3 rounded-lg border ${errors.name ? 'border-red-500' : 'border-[#ccbeac]'} text-sm sm:text-base`}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowRegionForm(!showRegionForm)}
-                          className="bg-[#ccbeac] text-[#0b0b0b] px-3 py-2 sm:py-0 rounded-lg hover:bg-[#ccbeac]/90 transition-colors text-sm sm:text-base"
-                        >
-                          {showRegionForm ? '×' : '+'}
-                        </button>
+                        {errors.name && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.name.message}</p>}
                       </div>
-                      {errors.region && <p className="text-red-500 text-xs sm:text-sm mt-1">Region is required</p>}
+                    </div>
+
+                    <div className="space-y-2 sm:space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Region *</label>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Controller
+                            name="region"
+                            control={control}
+                            rules={{ required: 'Select a region' }}
+                            render={({ field }) => {
+                              const options = regions.map(r => ({
+                                value: r._id.toString(),
+                                label: `${r.name} (${r.code})`,
+                              }));
+                              return (
+                                <Select
+                                  options={options}
+                                  value={options.find(o => o.value === field.value)}
+                                  onChange={(option) => field.onChange(option?.value || '')}
+                                  className="flex-1 w-full"
+                                  styles={{
+                                    control: (base) => ({
+                                      ...base,
+                                      borderColor: errors.region ? '#ef4444' : '#ccbeac',
+                                      minHeight: '2.5rem',
+                                      fontSize: '14px',
+                                    }),
+                                    menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                  }}
+                                  menuPortalTarget={document.body}
+                                />
+                              );
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowRegionForm(!showRegionForm)}
+                            className="bg-[#ccbeac] text-[#0b0b0b] px-3 py-2 sm:py-0 rounded-lg hover:bg-[#ccbeac]/90 transition-colors text-sm sm:text-base"
+                          >
+                            {showRegionForm ? '×' : '+'}
+                          </button>
+                        </div>
+                        {errors.region && <p className="text-red-500 text-xs sm:text-sm mt-1">Region required</p>}
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-2 sm:space-y-4">
-    <div>
-      <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
-        Status
-      </label>
-      <Controller
-        name="status"
-        control={control}
-        render={({ field }) => (
-          <select
-            {...field}
-            className="w-full p-2 sm:p-3 rounded-lg border border-[#ccbeac] bg-white dark:bg-[#1a1a1a] text-sm sm:text-base h-[42px] sm:h-[48px]"
-          >
-            <option value="">Select Status</option>
-            <option value="Agreed">Agreed</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Refused">Refused</option>
-          </select>
-        )}
-      />
-    </div>
-  </div>
                 </div>
               </div>
 
-              {/* Region Form Section */}
               {showRegionForm && (
                 <div className="p-3 sm:p-4 bg-[#f9f9f4] dark:bg-[#1a1a1a] rounded-lg space-y-3">
-                  <h3 className="font-medium text-sm sm:text-base">
-                    {editingRegion ? 'Edit Region' : 'New Region'}
-                  </h3>
+                  <h3 className="font-medium text-sm sm:text-base">{editingRegion ? 'Edit Region' : 'New Region'}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       placeholder="Region name"
@@ -323,12 +284,9 @@ export default function ClientForm({
                       className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
                     />
                     <input
-                      placeholder="Region code (e.g., TN)"
+                      placeholder="Region code"
                       value={newRegion.code}
-                      onChange={(e) => setNewRegion({
-                        ...newRegion,
-                        code: e.target.value.toUpperCase().slice(0, 5),
-                      })}
+                      onChange={(e) => setNewRegion({ ...newRegion, code: e.target.value.toUpperCase().slice(0, 5) })}
                       className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
                       maxLength={5}
                     />
@@ -383,39 +341,40 @@ export default function ClientForm({
                 </div>
               )}
 
-              {/* Sticky Products Header */}
-              <div className="sticky top-[138px] bg-white dark:bg-[#0b0b0b] z-10 pt-4 sm:pt-6">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
-                  <h3 className="text-lg font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
-                    Installed Products
-                  </h3>
-                  <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={() => appendProduct({
-                        product: '',
-                        fabriquant: '',
-                        modele: '',
-                        reference: '',
-                        plageMesure: '',
-                        annee: '',
-                        versionLogiciel: '',
-                        autreInformation: '',
-                        addedAt: new Date(),
-                      })}
-                      className=" bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg hover:bg-[#ccbeac]/90  transition-colors w-full sm:w-auto text-sm sm:text-base"
-                    >
-                      Add Product
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className={`bg-green-600  text-white px-4 py-2 rounded-lg text-sm sm:text-base font-medium ${
-                        isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
-                      } w-full sm:w-auto`}
-                    >
-                      {isSubmitting ? 'Processing...' : client ? 'Update Costumer' : 'Create Costumer'}
-                    </button>
+              {/* Products Header */}
+              <div className="sticky top-[136px] bg-white dark:bg-[#0b0b0b] z-40 border-b border-[#ccbeac]/30">
+                <div className="pt-4 sm:pt-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
+                    <h3 className="text-lg font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Products</h3>
+                    <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => appendProduct({
+                          product: '',
+                          fabriquant: '',
+                          modele: '',
+                          reference: '',
+                          plageMesure: '',
+                          annee: '',
+                          versionLogiciel: '',
+                          autreInformation: '',
+                          status: 'negotiation',
+                          addedAt: new Date(),
+                        })}
+                        className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg hover:bg-[#ccbeac]/90 transition-colors w-full sm:w-auto text-sm sm:text-base"
+                      >
+                        Add Product
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className={`bg-green-600 text-white px-4 py-2 rounded-lg text-sm sm:text-base font-medium ${
+                          isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
+                        } w-full sm:w-auto`}
+                      >
+                        {isSubmitting ? 'Processing...' : client ? 'Update' : 'Create'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -439,93 +398,99 @@ export default function ClientForm({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="sm:col-span-2">
-                        <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1 sm:mb-2">Product *</label>
                         <Controller
                           name={`products.${productIndex}.product`}
                           control={control}
                           rules={{ required: true }}
-                          render={({ field }) => {
-                            const options = products.map(p => ({
-                              value: p._id.toString(),
-                              label: p.name,
-                            }));
-                            return (
-                              <Select
-                                options={options}
-                                value={options.find(o => o.value === field.value)}
-                                onChange={(option) => field.onChange(option?.value || '')}
-                                className="react-select-container"
-                                classNamePrefix="react-select"
-                                styles={{
-                                  control: (base) => ({
-                                    ...base,
-                                    borderColor: '#ccbeac',
-                                    minHeight: '2.5rem',
-                                    fontSize: '14px',
-                                  }),
-                                  menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                }}
-                                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                              />
-                            );
-                          }}
+                          render={({ field }) => (
+                            <Select
+                              options={products.map(p => ({
+                                value: p._id.toString(),
+                                label: p.name,
+                              }))}
+                              value={products.find(p => p._id.toString() === field.value)}
+                              onChange={(option) => field.onChange(option?.value)}
+                              placeholder="Select Product"
+                              className="react-select-container"
+                              classNamePrefix="react-select"
+                              styles={{
+                                control: (base) => ({
+                                  ...base,
+                                  borderColor: '#ccbeac',
+                                  minHeight: '2.5rem',
+                                }),
+                              }}
+                            />
+                          )}
                         />
                       </div>
 
                       <div className="space-y-3 sm:space-y-4">
                         <div>
-                          <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1">Manufacturer</label>
+                          <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Status</label>
+                          <select
+                            {...register(`products.${productIndex}.status`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded-lg text-sm bg-white"
+                          >
+                            <option value="negotiation" className="bg-gray-200">negotiation</option>
+                            <option value="closed-won" className="bg-green-200">closed-won</option>
+                            <option value="closed-lost" className="bg-orange-200">closed-lost</option>
+                            <option value="closed-declined" className="bg-red-200">closed-declined</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Manufacturer</label>
                           <input
                             {...register(`products.${productIndex}.fabriquant`)}
-                            className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
+                            className="w-full p-2 border border-[#ccbeac] rounded-lg"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1">Model</label>
+                          <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Model</label>
                           <input
                             {...register(`products.${productIndex}.modele`)}
-                            className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1">Reference</label>
-                          <input
-                            {...register(`products.${productIndex}.reference`)}
-                            className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
+                            className="w-full p-2 border border-[#ccbeac] rounded-lg"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-3 sm:space-y-4">
                         <div>
-                          <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1">Measurement Range</label>
+                          <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Reference</label>
                           <input
-                            {...register(`products.${productIndex}.plageMesure`)}
-                            className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
+                            {...register(`products.${productIndex}.reference`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded-lg"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1">Year</label>
+                          <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Measurement Range</label>
+                          <input
+                            {...register(`products.${productIndex}.plageMesure`)}
+                            className="w-full p-2 border border-[#ccbeac] rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Year</label>
                           <input
                             type="number"
                             {...register(`products.${productIndex}.annee`)}
-                            className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
+                            className="w-full p-2 border border-[#ccbeac] rounded-lg"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1">Software Version</label>
+                          <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Software</label>
                           <input
                             {...register(`products.${productIndex}.versionLogiciel`)}
-                            className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
+                            className="w-full p-2 border border-[#ccbeac] rounded-lg"
                           />
                         </div>
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1">Other Information</label>
+                        <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Other Information</label>
                         <textarea
                           {...register(`products.${productIndex}.autreInformation`)}
-                          className="w-full p-2 border border-[#ccbeac] rounded h-24 text-sm sm:text-base"
+                          className="w-full p-2 border border-[#ccbeac] rounded-lg h-24"
                         />
                       </div>
                     </div>

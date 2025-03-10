@@ -26,7 +26,6 @@ export async function PUT(
         $set: {
           ...body,
           secteur: body.secteur || null,
-          status: body.status || '',
           ville: body.ville || null,
           contacts: body.contacts?.map((c: any) => ({
             firstName: c.firstName || '',
@@ -41,6 +40,7 @@ export async function PUT(
             product: p.product,
             fabriquant: p.fabriquant || '',
             modele: p.modele || '',
+            status: p.status || 'negotiation',
             reference: p.reference || '',
             plageMesure: p.plageMesure || '',
             annee: p.annee || '',

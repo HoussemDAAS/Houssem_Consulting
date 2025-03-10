@@ -19,6 +19,7 @@ export interface ClientProduct {
   product: Schema.Types.ObjectId;
   fabriquant: string;
   modele: string;
+  status: 'negotiation' | 'closed-won' | 'closed-lost' | 'closed-declined';
   reference: string;
   plageMesure: string;
   annee: string;
@@ -36,7 +37,7 @@ export interface ClientDocument extends Document {
   contacts: Contact[];
   products: ClientProduct[];
   createdAt: Date;
-  status: 'Agreed' | 'In Progress' | 'Refused' | '';
+  // status: 'Agreed' | 'In Progress' | 'Refused' | '';
 }
 
 
@@ -44,11 +45,6 @@ const ClientSchema = new Schema<ClientDocument>({
   name: { type: String, required: true },
   region: { type: Schema.Types.ObjectId, ref: 'Region', required: true },
   address: { type: String, default: '' },
-  status: {
-    type: String,
-    enum: ['Agreed', 'In Progress', 'Refused', ''],
-    default: ''
-  },
   ville: {
     type: Schema.Types.ObjectId,
     ref: 'Ville',
@@ -88,6 +84,11 @@ const ClientSchema = new Schema<ClientDocument>({
     product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     fabriquant: { type: String, default: '' },
     modele: { type: String, default: '' },
+    status: {
+      type: String,
+      enum: ['negotiation', 'closed-won', 'closed-lost', 'closed-declined'],
+      default: 'negotiation'
+    },
     reference: { type: String, default: '' },
     plageMesure: { type: String, default: '' },
     annee: { type: String, default: '' },

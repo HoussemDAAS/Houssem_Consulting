@@ -70,9 +70,13 @@ export default function ClientContactBoard() {
 
   const groupClientsByRegion = () => {
     const grouped = new Map<string, ClientDocument[]>();
-    
-    // Create groups only for regions with clients
-    clients.forEach(client => {
+ 
+    const sortedClients = [...clients].sort((a, b) => 
+      a.name.localeCompare(b.name)
+    );
+  
+   
+    sortedClients.forEach(client => {
       const regionId = client.region?._id?.toString();
       if (regionId) {
         if (!grouped.has(regionId)) {
