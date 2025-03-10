@@ -79,6 +79,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Scrollable content area */}
         <div className="flex-1 flex flex-col h-[calc(100vh-12rem)] mt-2">
           <nav className="space-y-2 flex-1 overflow-y-auto">
+          <Link
+              href=""
+              className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
+             
+                 'hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Dashboard
+            </Link>
             <Link
               href="/dashboard"
               className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
@@ -87,7 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              Client Management
+              Costumer Management
             </Link>
 
             <Link
@@ -98,7 +107,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              Category Management
+              Product Management
             </Link>
 
             <Link

@@ -210,7 +210,7 @@ export default function ClientForm({
               <div className="sticky top-0 bg-white dark:bg-[#0b0b0b] z-20 pb-4 sm:pb-6">
                 <div className="flex justify-between items-center pb-3 sm:pb-4">
                   <h2 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-                    {client ? 'Edit Client Profile' : 'New Client Profile'}
+                    {client ? 'Edit Costumer Profile' : 'New Costumer Profile'}
                   </h2>
                   <button
                     type="button"
@@ -226,7 +226,7 @@ export default function ClientForm({
                   <div className="space-y-2 sm:space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">
-                        Client Name *
+                        Costumer Name *
                       </label>
                       <input
                         {...register('name', { required: 'Required field' })}
@@ -405,7 +405,7 @@ export default function ClientForm({
                       })}
                       className=" bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded-lg hover:bg-[#ccbeac]/90  transition-colors w-full sm:w-auto text-sm sm:text-base"
                     >
-                      Add Category
+                      Add Product
                     </button>
                     <button
                       type="submit"
@@ -414,7 +414,7 @@ export default function ClientForm({
                         isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'
                       } w-full sm:w-auto`}
                     >
-                      {isSubmitting ? 'Processing...' : client ? 'Update Client' : 'Create Client'}
+                      {isSubmitting ? 'Processing...' : client ? 'Update Costumer' : 'Create Costumer'}
                     </button>
                   </div>
                 </div>
@@ -426,7 +426,7 @@ export default function ClientForm({
                   <div key={field.id} className="mb-4 sm:mb-6 p-3 sm:p-4 border border-[#ccbeac] rounded-lg">
                     <div className="flex justify-between items-center mb-3 sm:mb-4">
                       <h4 className="font-medium text-sm sm:text-base text-[#0b0b0b] dark:text-[#ccbeac]">
-                        Category {productIndex + 1}
+                        Product {productIndex + 1}
                       </h4>
                       <button
                         type="button"
@@ -439,7 +439,7 @@ export default function ClientForm({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="sm:col-span-2">
-                        <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1 sm:mb-2">Category *</label>
+                        <label className="block text-xs sm:text-sm text-[#ccbeac] mb-1 sm:mb-2">Product *</label>
                         <Controller
                           name={`products.${productIndex}.product`}
                           control={control}

@@ -50,10 +50,7 @@ export async function PUT(
   }
 
   try {
-    await Client.updateMany(
-        { ville: params.id },
-        { $unset: { ville: "" } }
-      );
+
     const body = await request.json();
     
     if (!body.name) {

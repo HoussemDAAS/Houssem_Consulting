@@ -10,6 +10,7 @@ import { ArrowRight, Briefcase, Lightbulb } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
 interface LoginFormData {
   email: string;
@@ -63,26 +64,31 @@ export default function LoginPage() {
       <div className="lg:w-1/2 flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
         <div className="space-y-6 max-w-xs">
           {/* Centered Logo Stack */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative w-30 h-30 ">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="flex flex-col items-center gap-6 lg:gap-6"
+          >
+            <div className="relative w-40 h-40 lg:w-40 lg:h-40">
               <Image 
                 src="/logo.jpeg" 
-                alt="Company Logo"
-                width={120}
-                height={120}
+                alt="Company Logo 1" 
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </div>
-            <div className="relative w-30 h-30 ">
+            <div className="relative w-40 ">
               <Image 
                 src="/logo2.svg" 
-                alt="Company Logo" 
-                width={120}
-                height={120}
+                alt="Company Logo 2" 
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </div>
-          </div>
+          </motion.div>
 
           <h2 className="text-xl lg:text-2xl font-bold text-center text-gray-800 dark:text-gray-200">
             Strategic Analytics Platform

@@ -23,23 +23,23 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="flex flex-col items-center gap-3 lg:gap-4"
+            className="flex flex-col items-center gap-6 lg:gap-6"
           >
-            <div className="relative w-24 h-24 lg:w-28 lg:h-28">
+            <div className="relative w-40 h-40 lg:w-40 lg:h-40">
               <Image 
                 src="/logo.jpeg" 
                 alt="Company Logo 1" 
-                width={112}
-                height={112}
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </div>
-            <div className="relative w-24 h-24 lg:w-28 lg:h-28">
+            <div className="relative">
               <Image 
                 src="/logo2.svg" 
                 alt="Company Logo 2" 
-                width={112}
-                height={112}
+                width={200}
+                height={200}
                 className="object-contain"
               />
             </div>

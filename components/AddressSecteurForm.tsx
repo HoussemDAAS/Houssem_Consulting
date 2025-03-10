@@ -10,6 +10,7 @@ import { VilleDocument } from '@/lib/models/Ville';
 
 interface AddressManagementFormProps {
   isOpen: boolean;
+  onSuccess?: () => void; 
   onClose: () => void;
   client: {
     id: string;
@@ -29,6 +30,7 @@ interface AddressManagementFormProps {
 export default function AddressManagementForm({
   isOpen,
   onClose,
+  onSuccess,
   client,
   secteurs,
   villes,
@@ -77,6 +79,7 @@ export default function AddressManagementForm({
       setValue('secteur', createdSecteur._id);
       setShowSecteurForm(false);
       setNewSecteur({ name: '', code: '' });
+          onSuccess?.(); 
     } catch (error) {
       console.error('Secteur creation error:', error);
       alert('Failed to create secteur');
@@ -118,6 +121,7 @@ export default function AddressManagementForm({
       setValue('secteur', updatedSecteur._id);
       setEditingSecteur(null);
       setNewSecteur({ name: '', code: '' });
+      onSuccess?.();
     } catch (error) {
       console.error('Secteur update error:', error);
       alert(error instanceof Error ? error.message : 'Failed to update secteur');
@@ -134,6 +138,7 @@ export default function AddressManagementForm({
       if (!response.ok) throw new Error('Failed to delete secteur');
       setLocalSecteurs(prev => prev.filter(s => s._id !== secteurId));
       setValue('secteur', '');
+      onSuccess?.();
     } catch (error) {
       console.error('Secteur deletion error:', error);
       alert('Failed to delete secteur');
@@ -155,6 +160,7 @@ export default function AddressManagementForm({
       setValue('ville', createdVille._id);
       setShowVilleForm(false);
       setNewVille({ name: '' });
+      onSuccess?.();
     } catch (error) {
       console.error('Ville creation error:', error);
       alert('Failed to create ville');
@@ -180,6 +186,7 @@ export default function AddressManagementForm({
       setValue('ville', updatedVille._id);
       setEditingVille(null);
       setNewVille({ name: '' });
+      onSuccess?.();
     } catch (error) {
       console.error('Ville update error:', error);
       alert('Failed to update ville');
@@ -196,6 +203,7 @@ export default function AddressManagementForm({
       if (!response.ok) throw new Error('Failed to delete ville');
       setLocalVilles(prev => prev.filter(v => v._id !== villeId));
       setValue('ville', '');
+      onSuccess?.();
     } catch (error) {
       console.error('Ville deletion error:', error);
       alert('Failed to delete ville');

@@ -175,6 +175,7 @@ export default function ClientContactBoard() {
               villes={villes}
               clients={regionClients}
               onSave={handleSave}
+              
               onSuccess={fetchData}
             />
           ) : null;

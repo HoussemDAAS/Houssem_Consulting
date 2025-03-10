@@ -67,7 +67,7 @@ const fetchProducts = async () => {
     return (
       <div className="p-8 flex justify-center">
         <div className="animate-pulse text-[#ccbeac]">
-          Loading categories...
+          Loading products...
         </div>
       </div>
     );
@@ -88,7 +88,7 @@ return (
             className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base"
           >
             <PlusIcon className="h-5 w-5" />
-            <span>Add Category</span>
+            <span>Add Product</span>
           </button>
         </div>
       </div>
@@ -118,7 +118,7 @@ return (
         </div>
       ) : (
         <div className="p-6 sm:p-8 text-center text-[#ccbeac] border-2 border-dashed rounded-xl text-sm sm:text-base">
-          No categories found. Click the button above to add a category.
+          No products found. Click the button above to add a product.
         </div>
       )}
 

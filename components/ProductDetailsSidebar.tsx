@@ -75,10 +75,10 @@ export default function ProductDetailsSidebar({ product, onClose }: {
           </div>
         )}
 
-        {/* Category Information */}
+        {/* Product Information */}
         <div className="space-y-3 sm:space-y-4">
           <h3 className="text-xs sm:text-sm font-medium text-[#ccbeac] uppercase tracking-wider">
-            Category Information
+            Product Information
           </h3>
           <div className="grid grid-cols-1 gap-3 sm:gap-4">
             <div className="space-y-1">
@@ -100,7 +100,7 @@ export default function ProductDetailsSidebar({ product, onClose }: {
           <div className="grid grid-cols-1 gap-3 sm:gap-4">
             <div className="p-3 sm:p-4 rounded-lg bg-[#ccbeac]/10 border border-[#ccbeac]/20">
               <p className="text-xs sm:text-sm text-[#ccbeac]">
-                Number of clients using this category
+                Number of clients using this product
               </p>
               {isLoading ? (
                 <div className="animate-pulse h-6 sm:h-8 w-1/2 bg-[#ccbeac]/20 rounded mt-1 sm:mt-2" />
