@@ -67,8 +67,12 @@ export default function ClientBoard() {
   const groupClientsByRegion = () => {
     const grouped = new Map<string, ClientDocument[]>();
     
-
-    clients.forEach(client => {
+    const sortedClients = [...clients].sort((a, b) => 
+      a.name.localeCompare(b.name)
+    );
+  
+    // Create groups with sorted clients
+    sortedClients.forEach(client => {
       const regionId = client.region?._id?.toString();
       if (regionId) {
         if (!grouped.has(regionId)) {

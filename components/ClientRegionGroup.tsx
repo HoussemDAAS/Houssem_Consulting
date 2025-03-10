@@ -16,13 +16,14 @@ interface ClientAccordionProps {
 }
 
 const statusColors = {
-  'negotiation': 'bg-gray-400',
+  'negotiation': 'bg-gray-300',
   'closed-won': 'bg-green-500',
-  'closed-lost': 'bg-orange-500',
-  'closed-declined': 'bg-red-500',
+  'closed-lost': 'bg-red-500',
+  'closed-declined': 'bg-gray-900',
 };
 
 const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete }: ClientAccordionProps) => {
+  const hasNegotiation = client.products.some(p => p.status === 'negotiation');
   return (
     <div className="border-b border-[#ccbeac]/30">
       <div className="flex items-center p-3 md:p-4 hover:bg-[#f5f5f5] dark:hover:bg-[#2d2d2d]">
@@ -37,6 +38,7 @@ const ClientAccordion = ({ client, products, isOpen, onToggle, onEdit, onDelete 
           <div className="flex-1 min-w-0">
             <button onClick={onEdit} className="text-left w-full truncate">
               <div className="flex items-center gap-2 flex-1">
+              <span className={`w-3 h-3 rounded-full ${hasNegotiation ? 'bg-green-500' : 'bg-gray-300'}`} />
                 <h3 className="font-semibold truncate">{client.name}</h3>
               </div>
             </button>

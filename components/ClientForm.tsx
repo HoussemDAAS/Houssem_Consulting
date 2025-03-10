@@ -398,30 +398,35 @@ export default function ClientForm({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="sm:col-span-2">
-                        <Controller
+                      <Controller
                           name={`products.${productIndex}.product`}
                           control={control}
                           rules={{ required: true }}
-                          render={({ field }) => (
-                            <Select
-                              options={products.map(p => ({
-                                value: p._id.toString(),
-                                label: p.name,
-                              }))}
-                              value={products.find(p => p._id.toString() === field.value)}
-                              onChange={(option) => field.onChange(option?.value)}
-                              placeholder="Select Product"
-                              className="react-select-container"
-                              classNamePrefix="react-select"
-                              styles={{
-                                control: (base) => ({
-                                  ...base,
-                                  borderColor: '#ccbeac',
-                                  minHeight: '2.5rem',
-                                }),
-                              }}
-                            />
-                          )}
+                          render={({ field }) => {
+                            const options = products.map(p => ({
+                              value: p._id.toString(),
+                              label: p.name,
+                            }));
+                            return (
+                              <Select
+                                options={options}
+                                value={options.find(o => o.value === field.value)}
+                                onChange={(option) => field.onChange(option?.value || '')}
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                styles={{
+                                  control: (base) => ({
+                                    ...base,
+                                    borderColor: '#ccbeac',
+                                    minHeight: '2.5rem',
+                                    fontSize: '14px',
+                                  }),
+                                  menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                }}
+                                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                              />
+                            );
+                          }}
                         />
                       </div>
 
@@ -434,8 +439,8 @@ export default function ClientForm({
                           >
                             <option value="negotiation" className="bg-gray-200">negotiation</option>
                             <option value="closed-won" className="bg-green-200">closed-won</option>
-                            <option value="closed-lost" className="bg-orange-200">closed-lost</option>
-                            <option value="closed-declined" className="bg-red-200">closed-declined</option>
+                            <option value="closed-lost" className="bg-red-200">closed-lost</option>
+                            <option value="closed-declined" className="bg-gray-900 text-white">closed-declined</option>
                           </select>
                         </div>
                         <div>
