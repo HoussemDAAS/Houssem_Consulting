@@ -1,25 +1,26 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import Select from 'react-select';
 import { SecteurDocument } from '@/lib/models/Secteur';
 import { VilleDocument } from '@/lib/models/Ville';
+import { RegionDocument } from '@/lib/models/Region';
 
 interface AddressManagementFormProps {
   isOpen: boolean;
-  onSuccess?: () => void; 
   onClose: () => void;
   client: {
     id: string;
     address: string;
     ville?: string;
     secteur?: string;
+    region: string;
   };
   secteurs: SecteurDocument[];
   villes: VilleDocument[];
+  regions: RegionDocument[];
   onSave: (data: {
     address: string;
     ville?: string;
@@ -27,13 +28,13 @@ interface AddressManagementFormProps {
   }) => Promise<void>;
 }
 
-export default function AddressManagementForm({
+export default function AddressSecteurForm({
   isOpen,
   onClose,
-  onSuccess,
   client,
-  secteurs,
-  villes,
+  secteurs = [],
+  villes = [],
+  regions = [],
   onSave,
 }: AddressManagementFormProps) {
   const { register, handleSubmit, control, reset, setValue } = useForm({
@@ -44,178 +45,38 @@ export default function AddressManagementForm({
     }
   });
 
-  const [showSecteurForm, setShowSecteurForm] = useState(false);
-  const [showVilleForm, setShowVilleForm] = useState(false);
-  const [editingSecteur, setEditingSecteur] = useState<SecteurDocument | null>(null);
-  const [editingVille, setEditingVille] = useState<VilleDocument | null>(null);
-  const [newSecteur, setNewSecteur] = useState({ name: '', code: '' });
-  const [newVille, setNewVille] = useState({ name: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [localSecteurs, setLocalSecteurs] = useState<SecteurDocument[]>(secteurs);
-  const [localVilles, setLocalVilles] = useState<VilleDocument[]>(villes);
+  const [filteredVilles, setFilteredVilles] = useState<VilleDocument[]>([]);
 
+  // Filter villes based on client's region
+  useEffect(() => {
+    if (client.region && villes.length > 0) {
+      const filtered = villes.filter(v => v.region?.toString() === client.region);
+      setFilteredVilles(filtered);
+      // Reset ville if it's not in the filtered list
+      if (client.ville && !filtered.some(v => v._id.toString() === client.ville)) {
+        setValue('ville', '');
+      }
+    } else {
+      setFilteredVilles([]);
+    }
+  }, [client.region, villes, client.ville, setValue]);
+
+  // Initialize form
   useEffect(() => {
     reset({
       address: client.address,
       ville: client.ville,
       secteur: client.secteur,
     });
-    setLocalSecteurs(secteurs);
-    setLocalVilles(villes);
-  }, [client, reset, secteurs, villes]);
-
-  const handleAddSecteur = async () => {
-    try {
-      const response = await fetch('/api/secteurs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSecteur),
-      });
-
-      if (!response.ok) throw new Error('Failed to create secteur');
-      
-      const createdSecteur = await response.json();
-      setLocalSecteurs(prev => [...prev, createdSecteur]);
-      setValue('secteur', createdSecteur._id);
-      setShowSecteurForm(false);
-      setNewSecteur({ name: '', code: '' });
-          onSuccess?.(); 
-    } catch (error) {
-      console.error('Secteur creation error:', error);
-      alert('Failed to create secteur');
-    }
-  };
-
-  const handleUpdateSecteur = async () => {
-    if (!editingSecteur) return;
-  
-    try {
- 
-      if (!newSecteur.name || !newSecteur.code) {
-        alert('Both name and code are required for updates');
-        return;
-      }
-  
-      const response = await fetch(`/api/secteurs/${editingSecteur._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSecteur),
-      });
-  
-      const data = await response.json().catch(() => ({ 
-        error: 'Invalid server response' 
-      }));
-  
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update secteur');
-      }
-      
-      const updatedSecteur = data;
-      
- 
-      setLocalSecteurs(prev => 
-        prev.map(s => s._id === updatedSecteur._id ? updatedSecteur : s)
-      );
-      
-      // Update form value and reset state
-      setValue('secteur', updatedSecteur._id);
-      setEditingSecteur(null);
-      setNewSecteur({ name: '', code: '' });
-      onSuccess?.();
-    } catch (error) {
-      console.error('Secteur update error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to update secteur');
-    }
-  };
-
-  const handleDeleteSecteur = async (secteurId: string) => {
-    if (!confirm('Are you sure you want to delete this secteur?')) return;
-    try {
-      const response = await fetch(`/api/secteurs/${secteurId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete secteur');
-      setLocalSecteurs(prev => prev.filter(s => s._id !== secteurId));
-      setValue('secteur', '');
-      onSuccess?.();
-    } catch (error) {
-      console.error('Secteur deletion error:', error);
-      alert('Failed to delete secteur');
-    }
-  };
-
-  const handleAddVille = async () => {
-    try {
-      const response = await fetch('/api/villes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newVille),
-      });
-
-      if (!response.ok) throw new Error('Failed to create ville');
-      
-      const createdVille = await response.json();
-      setLocalVilles(prev => [...prev, createdVille]);
-      setValue('ville', createdVille._id);
-      setShowVilleForm(false);
-      setNewVille({ name: '' });
-      onSuccess?.();
-    } catch (error) {
-      console.error('Ville creation error:', error);
-      alert('Failed to create ville');
-    }
-  };
-
-  const handleUpdateVille = async () => {
-    if (!editingVille) return;
-
-    try {
-      const response = await fetch(`/api/villes/${editingVille._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newVille),
-      });
-
-      if (!response.ok) throw new Error('Failed to update ville');
-      
-      const updatedVille = await response.json();
-      setLocalVilles(prev => 
-        prev.map(v => v._id === updatedVille._id ? updatedVille : v)
-      );
-      setValue('ville', updatedVille._id);
-      setEditingVille(null);
-      setNewVille({ name: '' });
-      onSuccess?.();
-    } catch (error) {
-      console.error('Ville update error:', error);
-      alert('Failed to update ville');
-    }
-  };
-
-  const handleDeleteVille = async (villeId: string) => {
-    if (!confirm('Are you sure you want to delete this ville?')) return;
-    try {
-      const response = await fetch(`/api/villes/${villeId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete ville');
-      setLocalVilles(prev => prev.filter(v => v._id !== villeId));
-      setValue('ville', '');
-      onSuccess?.();
-    } catch (error) {
-      console.error('Ville deletion error:', error);
-      alert('Failed to delete ville');
-    }
-  };
+  }, [client, reset]);
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       await onSave({
         address: data.address,
-        ville: data.ville || undefined, 
+        ville: data.ville || undefined,
         secteur: data.secteur || undefined
       });
       onClose();
@@ -263,236 +124,127 @@ export default function AddressManagementForm({
                   <input
                     {...register('address')}
                     className="w-full p-3 rounded-lg border border-[#ccbeac]"
+                    placeholder="Enter address"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">City</label>
-                  <div className="flex gap-2">
-                    <Controller
-                      name="ville"
-                      control={control}
-                      render={({ field }) => {
-                        const options = localVilles.map(v => ({
-                          value: v._id.toString(),
-                          label: v.name,
-                        }));
-                        return (
-                          <Select
-                            options={options}
-                            value={options.find(o => o.value === field.value)}
-                            onChange={(option) => field.onChange(option?.value || undefined)} 
-                            className="flex-1"
-                            styles={{
-                              control: (base) => ({
-                                ...base,
-                                borderColor: '#ccbeac',
-                                minHeight: '3rem',
-                              }),
-                            }}
-                          />
-                        );
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowVilleForm(!showVilleForm);
-                        setEditingVille(null);
-                        setNewVille({ name: '' });
-                      }}
-                      className="bg-[#ccbeac] text-[#0b0b0b] px-3 rounded-lg hover:bg-[#ccbeac]/90"
-                    >
-                      {showVilleForm ? '×' : '+'}
-                    </button>
-                  </div>
+                  <label className="block text-sm font-medium mb-2">Region</label>
+                  <select
+                    value={client.region}
+                    className="w-full p-3 rounded-lg border border-[#ccbeac] bg-white dark:bg-[#1a1a1a] cursor-not-allowed"
+                    disabled
+                  >
+                    {regions.length > 0 ? (
+                      regions.map(region => (
+                        <option key={region._id} value={region._id.toString()}>
+                          {region.name} ({region.code})
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No regions available</option>
+                    )}
+                  </select>
                 </div>
 
-                {showVilleForm && (
-                  <div className="p-4 bg-[#f9f9f4] dark:bg-[#1a1a1a] rounded-lg space-y-3">
-                    <h3 className="font-medium">
-                      {editingVille ? 'Edit City' : 'New City'}
-                    </h3>
-                    <input
-                      placeholder="City name"
-                      value={newVille.name}
-                      onChange={(e) => setNewVille({ name: e.target.value })}
-                      className="w-full p-2 border border-[#ccbeac] rounded"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={editingVille ? handleUpdateVille : handleAddVille}
-                        className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded hover:bg-[#ccbeac]/90 flex-1"
-                      >
-                        {editingVille ? 'Update' : 'Add'} City
-                      </button>
-                      {editingVille && (
-                        <button
-                          type="button"
-                          onClick={() => setEditingVille(null)}
-                          className="px-4 py-2 text-red-500 hover:bg-red-100/20 rounded"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-                    <div className="pt-4 border-t border-[#ccbeac]">
-                      <h4 className="text-sm font-medium mb-2">Existing Cities</h4>
-                      <div className="space-y-2">
-                        {localVilles.map(ville => (
-                          <div key={ville._id} className="flex items-center justify-between">
-                            <span className="truncate">{ville.name}</span>
-                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingVille(ville);
-                                  setNewVille({ name: ville.name });
-                                }}
-                                className="text-[#ccbeac] hover:text-[#ccbeac]/70"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteVille(ville._id)}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-sm font-medium mb-2">City</label>
+                  <Controller
+                    name="ville"
+                    control={control}
+                    render={({ field }) => {
+                      const options = filteredVilles.map(v => ({
+                        value: v._id.toString(),
+                        label: v.name,
+                      }));
+                      
+                      return (
+                        <Select
+                          options={options}
+                          value={options.find(o => o.value === field.value)}
+                          onChange={(option) => field.onChange(option?.value || undefined)}
+                          className="react-select-container"
+                          classNamePrefix="react-select"
+                          placeholder={
+                            filteredVilles.length > 0 
+                              ? "Select a city" 
+                              : "No cities available for this region"
+                          }
+                          isDisabled={filteredVilles.length === 0}
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              borderColor: '#ccbeac',
+                              minHeight: '3rem',
+                              backgroundColor: 'white',
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                          }}
+                          theme={(theme) => ({
+                            ...theme,
+                            colors: {
+                              ...theme.colors,
+                              primary: '#ccbeac',
+                              primary25: '#f5f5f5',
+                            },
+                          })}
+                        />
+                      );
+                    }}
+                  />
+                  {filteredVilles.length === 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      No cities available for the selected region
+                    </p>
+                  )}
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Sector</label>
-                  <div className="flex gap-2">
-                    <Controller
-                      name="secteur"
-                      control={control}
-                      render={({ field }) => {
-                        const options = localSecteurs.map(s => ({
-                          value: s._id.toString(),
-                          label: `${s.name} (${s.code})`,
-                        }));
-                        return (
-                          <Select
-                            options={options}
-                            value={options.find(o => o.value === field.value)}
-                            onChange={(option) => field.onChange(option?.value || undefined)} 
-                            className="flex-1"
-                            styles={{
-                              control: (base) => ({
-                                ...base,
-                                borderColor: '#ccbeac',
-                                minHeight: '3rem',
-                              }),
-                              menuList: (base) => ({
-                                ...base,
-                                maxHeight: '200px',
-                                overflowY: 'auto',
-                                scrollBehavior: 'smooth',
-                              }),
-                              menu: (base) => ({
-                                ...base,
-                                zIndex: 9999,
-                              }),
-                            }}
-                          />
-                        );
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowSecteurForm(!showSecteurForm);
-                        setEditingSecteur(null);
-                        setNewSecteur({ name: '', code: '' });
-                      }}
-                      className="bg-[#ccbeac] text-[#0b0b0b] px-3 rounded-lg hover:bg-[#ccbeac]/90"
-                    >
-                      {showSecteurForm ? '×' : '+'}
-                    </button>
-                  </div>
+                  <Controller
+                    name="secteur"
+                    control={control}
+                    render={({ field }) => {
+                      const options = secteurs.map(s => ({
+                        value: s._id.toString(),
+                        label: `${s.name} (${s.code})`,
+                      }));
+                      return (
+                        <Select
+                          options={options}
+                          value={options.find(o => o.value === field.value)}
+                          onChange={(option) => field.onChange(option?.value || undefined)}
+                          className="react-select-container"
+                          classNamePrefix="react-select"
+                          placeholder="Select a sector"
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              borderColor: '#ccbeac',
+                              minHeight: '3rem',
+                              backgroundColor: 'white',
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                          }}
+                          theme={(theme) => ({
+                            ...theme,
+                            colors: {
+                              ...theme.colors,
+                              primary: '#ccbeac',
+                              primary25: '#f5f5f5',
+                            },
+                          })}
+                        />
+                      );
+                    }}
+                  />
                 </div>
-
-                {showSecteurForm && (
-                  <div className="p-4 bg-[#f9f9f4] dark:bg-[#1a1a1a] rounded-lg space-y-3">
-                    <h3 className="font-medium">
-                      {editingSecteur ? 'Edit Sector' : 'New Sector'}
-                    </h3>
-                    <input
-                      placeholder="Sector name"
-                      value={newSecteur.name}
-                      onChange={(e) => setNewSecteur(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full p-2 border border-[#ccbeac] rounded"
-                    />
-                    <input
-                      placeholder="Sector code"
-                      value={newSecteur.code}
-                      onChange={(e) => setNewSecteur(prev => ({ 
-                        ...prev, 
-                        code: e.target.value.toUpperCase().slice(0, 5)
-                      }))}
-                      className="w-full p-2 border border-[#ccbeac] rounded"
-                      maxLength={5}
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={editingSecteur ? handleUpdateSecteur : handleAddSecteur}
-                        className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded hover:bg-[#ccbeac]/90 flex-1"
-                      >
-                        {editingSecteur ? 'Update' : 'Add'} Sector
-                      </button>
-                      {editingSecteur && (
-                        <button
-                          type="button"
-                          onClick={() => setEditingSecteur(null)}
-                          className="px-4 py-2 text-red-500 hover:bg-red-100/20 rounded"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-                    <div className="pt-4 border-t border-[#ccbeac]">
-                      <h4 className="text-sm font-medium mb-2">Existing Sectors</h4>
-                      <div className="space-y-2">
-                        {localSecteurs.map(secteur => (
-                          <div key={secteur._id} className="flex items-center justify-between">
-                            <span className="truncate">
-                              {secteur.name} ({secteur.code})
-                            </span>
-                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingSecteur(secteur);
-                                  setNewSecteur({ name: secteur.name, code: secteur.code });
-                                }}
-                                className="text-[#ccbeac] hover:text-[#ccbeac]/70"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteSecteur(secteur._id)}
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="flex justify-end gap-4 pt-6 border-t border-[#ccbeac]">
@@ -506,7 +258,7 @@ export default function AddressManagementForm({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-2 bg-[#ccbeac] text-[#0b0b0b] rounded-lg font-medium hover:bg-[#ccbeac]/90"
+                  className="px-6 py-2 bg-[#ccbeac] text-[#0b0b0b] rounded-lg font-medium hover:bg-[#ccbeac]/90 disabled:opacity-70"
                 >
                   {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </button>

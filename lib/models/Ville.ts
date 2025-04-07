@@ -1,8 +1,10 @@
 import { Schema, model, models, Document } from 'mongoose';
+import { RegionDocument } from './Region';
 
 export interface VilleDocument extends Document {
 
     name: string;
+    region: Schema.Types.ObjectId | RegionDocument;
   }
 
 const VilleSchema = new Schema<VilleDocument>({
@@ -10,6 +12,11 @@ const VilleSchema = new Schema<VilleDocument>({
     type: String,
     required: true,
     unique: true
+  },
+  region: {
+    type: Schema.Types.ObjectId,
+    ref: 'Region',
+    required: true
   }
 });
 

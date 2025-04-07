@@ -38,6 +38,7 @@ interface ClientContactRegionGroupProps {
   region: RegionDocument;
   secteurs: SecteurDocument[];
   villes: VilleDocument[];
+  regions: RegionDocument[]; 
   clients: ClientDocument[];
   onSave: (
     clientId: string,
@@ -56,6 +57,7 @@ export default function ClientContactRegionGroup({
   secteurs,
   villes,
   clients,
+  regions,
   onSave,
   onSuccess,
 }: ClientContactRegionGroupProps) {
@@ -408,30 +410,32 @@ export default function ClientContactRegionGroup({
       </AnimatePresence>
 
       {currentLocationClient && (
-        <AddressSecteurForm
-          isOpen={showAddressForm}
-          onClose={() => {
-            setShowAddressForm(false);
-            setCurrentLocationClient(null);
-          }}
-          client={{
-            id: currentLocationClient._id.toString(),
-            address: currentLocationClient.address || "",
-            ville: currentLocationClient.ville?._id?.toString() || "",
-            secteur: currentLocationClient.secteur?._id?.toString() || "",
-          }}
-          secteurs={localSecteurs}
-          villes={villes}
-          onSave={async (data) => {
-            await onSave(currentLocationClient._id.toString(), {
-              address: data.address,
-              ville: data.ville,
-              secteur: data.secteur,
-            });
-            onSuccess();
-          }}
-        />
-      )}
+  <AddressSecteurForm
+    isOpen={showAddressForm}
+    onClose={() => {
+      setShowAddressForm(false);
+      setCurrentLocationClient(null);
+    }}
+    client={{
+      id: currentLocationClient._id.toString(),
+      address: currentLocationClient.address || "",
+      ville: currentLocationClient.ville?._id?.toString() || "",
+      secteur: currentLocationClient.secteur?._id?.toString() || "",
+      region: currentLocationClient.region._id.toString() // Make sure to pass the region
+    }}
+    secteurs={localSecteurs}
+    villes={villes}
+    regions={regions} // Pass the regions array
+    onSave={async (data) => {
+      await onSave(currentLocationClient._id.toString(), {
+        address: data.address,
+        ville: data.ville,
+        secteur: data.secteur,
+      });
+      onSuccess();
+    }}
+  />
+)}
     </motion.div>
   );
 }

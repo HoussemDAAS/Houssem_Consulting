@@ -169,21 +169,21 @@ export default function ClientContactBoard() {
           products={[]}
         />
   
-        {groupClientsByRegion().map(([regionId, regionClients]) => {
-          const region = regions.find(r => r._id.toString() === regionId);
-          return region ? (
-            <ClientContactRegionGroup
-              key={regionId}
-              region={region}
-              secteurs={secteurs}
-              villes={villes}
-              clients={regionClients}
-              onSave={handleSave}
-              
-              onSuccess={fetchData}
-            />
-          ) : null;
-        })}
+  {groupClientsByRegion().map(([regionId, regionClients]) => {
+  const region = regions.find(r => r._id.toString() === regionId);
+  return region ? (
+    <ClientContactRegionGroup
+      key={regionId}
+      region={region}
+      secteurs={secteurs}
+      villes={villes}
+      regions={regions} // Pass the regions array
+      clients={regionClients}
+      onSave={handleSave}
+      onSuccess={fetchData}
+    />
+  ) : null;
+})}
       </div>
     </div>
   );
