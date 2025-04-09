@@ -210,7 +210,7 @@ export default function ClientContactRegionGroup({
             {clients.length === 0 ? (
               <div className="p-4 sm:p-6 text-center text-[#ccbeac] text-sm sm:text-base">
                 <span className="text-lg mb-2">📭</span>
-                <p className="font-medium">No clients in this region</p>
+                <p className="font-medium">No clients in this Country</p>
               </div>
             ) : (
               <div className="divide-y divide-[#ccbeac]/30">

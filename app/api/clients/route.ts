@@ -65,9 +65,30 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
+    // Validate name
+    if (!body.name?.trim()) {
+      return NextResponse.json(
+        { error: 'Client name is required' },
+        { status: 400 }
+      );
+    }
+
+    // Check for existing client
+    const existingClient = await Client.findOne({ 
+      name: { $regex: new RegExp(`^${body.name.trim()}$`, 'i') }
+    });
+    
+    if (existingClient) {
+      return NextResponse.json(
+        { error: 'Client with this name already exists' },
+        { status: 409 }
+      );
+    }
+
+    // Transform products
     const transformedProducts = body.products?.map((p: any) => ({
       product: p.product,
-      fabriquant: p.fabriquant || '', 
+      fabriquant: p.fabriquant || '',
       modele: p.modele || '',
       status: p.status || 'negotiation',
       reference: p.reference || '',
@@ -75,29 +96,39 @@ export async function POST(request: Request) {
       annee: p.annee || '',
       versionLogiciel: p.versionLogiciel || '',
       autreInformation: p.autreInformation || '',
-    
       addedAt: p.addedAt || new Date()
     }));
 
+    // Create new client
     const client = new Client({
-      name: body.name,
+      name: body.name.trim(),
       region: body.region,
       ville: body.ville || null,
-
-      
-      products: transformedProducts
+      secteur: body.secteur || null,
+      contacts: body.contacts || [],
+      products: transformedProducts || []
     });
     
     await client.save();
+
+    // Populate and return
     return NextResponse.json(
       await Client.populate(client, [
         { path: 'region' },
-        { path: 'ville' }, 
+        { path: 'ville' },
+        { path: 'secteur' },
         { path: 'products.product' }
       ]), 
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
+    // Handle MongoDB duplicate key error
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { error: 'Client with this name already exists' },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Server error' },
       { status: 500 }

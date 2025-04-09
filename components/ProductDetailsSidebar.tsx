@@ -37,19 +37,26 @@ export default function ProductDetailsSidebar({ product, onClose }: {
   }, [product?._id]);
 
   return (
-<motion.div
-  key={product._id}
-  initial={{ x: '100%' }}
-  animate={{ x: 0 }}
-  exit={{ x: '100%' }}
-  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-  className="fixed inset-y-0 right-0 w-full md:max-w-md bg-[#f9f9f4] dark:bg-[#0b0b0b] shadow-xl p-4 sm:p-6 z-50 border-l border-[#ccbeac] h-screen flex flex-col"
->
+    <motion.div
+      key={product._id}
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '100%' }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="fixed inset-y-0 right-0 w-full md:max-w-md bg-[#f9f9f4] dark:bg-[#0b0b0b] shadow-xl p-4 sm:p-6 z-50 border-l border-[#ccbeac] h-screen flex flex-col"
+    >
       {/* Header Section */}
       <div className="flex justify-between items-center pb-4 sm:pb-6 border-b border-[#ccbeac]">
-        <h2 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
-          {product.name}
-        </h2>
+        <div className="min-w-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
+            {product.name}
+          </h2>
+          {product.abbreviation && (
+            <p className="text-sm text-[#ccbeac] uppercase truncate">
+              {product.abbreviation}
+            </p>
+          )}
+        </div>
         <button 
           onClick={onClose}
           className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75 transition-opacity flex-shrink-0 p-1"
@@ -81,6 +88,16 @@ export default function ProductDetailsSidebar({ product, onClose }: {
             Product Information
           </h3>
           <div className="grid grid-cols-1 gap-3 sm:gap-4">
+            {product.abbreviation && (
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm text-[#0b0b0b] dark:text-[#ccbeac]/80">
+                  Abbreviation
+                </p>
+                <p className="text-sm sm:text-base font-medium text-[#0b0b0b] dark:text-[#f9f9f4]">
+                  {product.abbreviation}
+                </p>
+              </div>
+            )}
             <div className="space-y-1">
               <p className="text-xs sm:text-sm text-[#0b0b0b] dark:text-[#ccbeac]/80">
                 Creation Date

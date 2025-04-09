@@ -227,7 +227,7 @@ export default function ClientRegionGroup({
             {clients.length === 0 ? (
               <div className="p-6 text-center text-[#ccbeac]">
                 <span className="text-lg mb-2">📭</span>
-                <p className="font-medium">No clients in this region</p>
+                <p className="font-medium">No clients in this Country</p>
               </div>
             ) : (
               <div className="divide-y divide-[#ccbeac]/30">

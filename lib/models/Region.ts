@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface RegionDocument extends Document {
   name: string;
-  code: string; // Example: "TN"
+  code: string;
 }
 
 const RegionSchema = new Schema<RegionDocument>({

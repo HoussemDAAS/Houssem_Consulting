@@ -41,7 +41,7 @@ export interface ClientDocument extends Document {
 
 
 const ClientSchema = new Schema<ClientDocument>({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   region: { type: Schema.Types.ObjectId, ref: 'Region', required: true },
   address: { type: String, default: '' },
   ville: {

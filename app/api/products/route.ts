@@ -34,6 +34,7 @@ export async function POST(request: Request) {
 
     const product = new Product({
       name: body.name.trim(),
+      abbreviation: body.abbreviation || '',
       image: body.image || ''
     });
     

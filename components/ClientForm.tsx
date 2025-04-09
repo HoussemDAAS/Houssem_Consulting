@@ -62,6 +62,7 @@ export default function ClientForm({
   const [newRegion, setNewRegion] = useState({ name: '', code: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingRegion, setEditingRegion] = useState<RegionDocument | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { fields: productFields, append: appendProduct, remove: removeProduct } = useFieldArray({
     control,
     name: 'products',
@@ -104,8 +105,8 @@ export default function ClientForm({
       setNewRegion({ name: '', code: '' });
       refreshClients();
     } catch (error) {
-      console.error('Region creation error:', error);
-      alert('Failed to create region');
+      console.error('Country creation error:', error);
+      alert('Failed to create Country');
     }
   };
 
@@ -130,24 +131,26 @@ export default function ClientForm({
   };
 
   const handleDeleteRegion = async (regionId: string) => {
-    if (!confirm('Delete this region? Clients using it will need to be updated.')) return;
+    if (!confirm('Delete this Country? Clients using it will need to be updated.')) return;
     try {
       const response = await fetch(`/api/regions/${regionId}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete region');
+      if (!response.ok) throw new Error('Failed to delete country');
       refreshClients();
     } catch (error) {
       console.error('Deletion error:', error);
-      alert('Failed to delete region');
+      alert('Failed to delete country');
     }
   };
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
+    setSubmitError(null); // Reset error state on new submission
+  
     try {
       const url = client ? `/api/clients/${client._id}` : '/api/clients';
       const method = client ? 'PUT' : 'POST';
       const cleanedData = {
-        name: data.name,
+        name: data.name.trim(), // Trim whitespace from name
         region: data.region,
         products: data.products.map(p => ({
           product: p.product,
@@ -162,24 +165,24 @@ export default function ClientForm({
           addedAt: p.addedAt || new Date()
         })),
       };
-
+  
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanedData),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Operation failed');
       }
-
+  
       refreshClients();
       reset();
       onClose();
     } catch (error) {
       console.error('Submission error:', error);
-      alert(error instanceof Error ? error.message : 'Unknown error');
+      setSubmitError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setIsSubmitting(false);
     }
@@ -212,7 +215,11 @@ export default function ClientForm({
                       <XMarkIcon className="h-6 w-6 sm:h-7 sm:w-7" />
                     </button>
                   </div>
-
+                  {submitError && (
+      <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm">
+        {submitError}
+      </div>
+    )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-2 sm:space-y-4">
                       <div>
@@ -227,7 +234,7 @@ export default function ClientForm({
 
                     <div className="space-y-2 sm:space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Region *</label>
+                        <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac]">Country *</label>
                         <div className="flex flex-col sm:flex-row gap-2">
                           <Controller
                             name="region"
@@ -266,7 +273,7 @@ export default function ClientForm({
                             {showRegionForm ? '×' : '+'}
                           </button>
                         </div>
-                        {errors.region && <p className="text-red-500 text-xs sm:text-sm mt-1">Region required</p>}
+                        {errors.region && <p className="text-red-500 text-xs sm:text-sm mt-1">Country required</p>}
                       </div>
                     </div>
                   </div>
@@ -275,16 +282,16 @@ export default function ClientForm({
 
               {showRegionForm && (
                 <div className="p-3 sm:p-4 bg-[#f9f9f4] dark:bg-[#1a1a1a] rounded-lg space-y-3">
-                  <h3 className="font-medium text-sm sm:text-base">{editingRegion ? 'Edit Region' : 'New Region'}</h3>
+                  <h3 className="font-medium text-sm sm:text-base">{editingRegion ? 'Edit Country' : 'New Country'}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
-                      placeholder="Region name"
+                      placeholder="Country name"
                       value={newRegion.name}
                       onChange={(e) => setNewRegion({ ...newRegion, name: e.target.value })}
                       className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
                     />
                     <input
-                      placeholder="Region code"
+                      placeholder="Country code"
                       value={newRegion.code}
                       onChange={(e) => setNewRegion({ ...newRegion, code: e.target.value.toUpperCase().slice(0, 5) })}
                       className="w-full p-2 border border-[#ccbeac] rounded text-sm sm:text-base"
@@ -297,7 +304,7 @@ export default function ClientForm({
                       onClick={editingRegion ? handleUpdateRegion : handleAddRegion}
                       className="bg-[#ccbeac] text-[#0b0b0b] px-4 py-2 rounded hover:bg-[#ccbeac]/90 flex-1 text-sm sm:text-base"
                     >
-                      {editingRegion ? 'Update' : 'Add'} Region
+                      {editingRegion ? 'Update' : 'Add'} Country
                     </button>
                     {editingRegion && (
                       <button
@@ -310,7 +317,7 @@ export default function ClientForm({
                     )}
                   </div>
                   <div className="pt-4 border-t border-[#ccbeac]">
-                    <h4 className="text-sm font-medium mb-2">Existing Regions</h4>
+                    <h4 className="text-sm font-medium mb-2">Existing Countries</h4>
                     <div className="space-y-2">
                       {regions.map(region => (
                         <div key={region._id} className="flex items-center justify-between">

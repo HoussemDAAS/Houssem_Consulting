@@ -31,6 +31,7 @@ export async function PUT(
 
     const updateData = {
       name: body.name.trim(),
+      abbreviation: body.abbreviation || '',
       image: body.image || existingProduct.image || '',
    
     };

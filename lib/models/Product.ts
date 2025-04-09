@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/models/Product.ts
 import { Schema, model, models, Document } from 'mongoose';
 
 export interface ProductDocument extends Document {
   name: string;
+  abbreviation?: string;
   image?: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const ProductSchema = new Schema<ProductDocument>({
@@ -17,16 +18,23 @@ const ProductSchema = new Schema<ProductDocument>({
     minlength: [2, 'Product name must be at least 2 characters'],
     maxlength: [50, 'Product name cannot exceed 50 characters']
   },
+  abbreviation: {
+    type: String,
+    trim: true,
+    uppercase: true,
+    maxlength: [10, 'Abbreviation cannot exceed 10 characters'],
+    default: '',
+    validate: {
+      validator: function(v: string) {
+        // Only allow letters and numbers
+        return !v || /^[A-Z0-9]*$/.test(v);
+      },
+      message: 'Abbreviation can only contain letters and numbers'
+    }
+  },
   image: {
     type: String,
     default: '',
-    // validate: {
-    //   validator: function(v: string) {
-    //     // Validate existing images but allow empty values
-    //     return !v || /^\/uploads\/[a-f0-9-]+-[^\/]+$/.test(v);
-    //   },
-    //   message: (props: any) => `Invalid image path format: ${props.value}`
-    // }
     validate: {
       validator: function(v: string) {
         return !v || v.startsWith('https://');
@@ -37,17 +45,23 @@ const ProductSchema = new Schema<ProductDocument>({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
 });
 
+// Add indexes
+ProductSchema.index({ name: 1 }, { unique: true });
+ProductSchema.index({ abbreviation: 1 }, { sparse: true }); // Sparse index since field is optional
+ProductSchema.index({ createdAt: -1 });
+ProductSchema.index({ updatedAt: -1 });
 
+// Update timestamp on save
 ProductSchema.pre('save', function(next) {
-  if (!this.image) this.image = '';
+  this.updatedAt = new Date();
   next();
 });
-
-
-ProductSchema.index({ name: 1 }, { unique: true });
-ProductSchema.index({ createdAt: -1 });
 
 export default models.Product || model<ProductDocument>('Product', ProductSchema);
