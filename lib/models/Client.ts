@@ -35,8 +35,7 @@ export interface ClientDocument extends Document {
   ville?: Schema.Types.ObjectId;
   contacts: Contact[];
   products: ClientProduct[];
-  createdAt: Date;
-  // status: 'Agreed' | 'In Progress' | 'Refused' | '';
+  createdAt?: Date;
 }
 
 

@@ -16,8 +16,9 @@ const VilleSchema = new Schema<VilleDocument>({
   region: {
     type: Schema.Types.ObjectId,
     ref: 'Region',
-    required: true
+    required: true,
+    index: true // Add index for better performance
   }
 });
-
+VilleSchema.index({ region: 1, name: 1 });
 export default models.Ville || model<VilleDocument>('Ville', VilleSchema);

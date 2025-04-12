@@ -1,21 +1,56 @@
+// import { NextResponse } from 'next/server';
+// import dbConnect from '@/lib/dbConnect';
+// import Ville from '@/lib/models/Ville';
+// // import Region from '@/lib/models/Region';
+
+// export async function GET() {
+//   await dbConnect();
+  
+//   try {
+//     // Basic fetch (original functionality)
+//     const villes = await Ville.find().sort({ name: 1 }).lean();
+    
+//     // Enhanced version with region data (optional)
+//     // const villes = await Ville.find()
+//     //   .sort({ name: 1 })
+//     //   .populate('region', 'name code -_id') // Only include region name and code
+//     //   .lean();
+    
+//     return NextResponse.json(villes, {
+//       headers: { 
+//         'Cache-Control': 'no-store, max-age=0',
+//         'CDN-Cache-Control': 'max-age=60' 
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Fetch error:', error);
+//     return NextResponse.json(
+//       { error: 'Failed to fetch villes' },
+//       { status: 500 }
+//     );
+//   }
+// }
+// app/api/villes/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Ville from '@/lib/models/Ville';
-// import Region from '@/lib/models/Region';
+import mongoose from 'mongoose';
 
-export async function GET() {
+export async function GET(request: Request) {
   await dbConnect();
-  
+  const { searchParams } = new URL(request.url);
+  const region = searchParams.get('region');
+
   try {
-    // Basic fetch (original functionality)
-    const villes = await Ville.find().sort({ name: 1 }).lean();
-    
-    // Enhanced version with region data (optional)
-    // const villes = await Ville.find()
-    //   .sort({ name: 1 })
-    //   .populate('region', 'name code -_id') // Only include region name and code
-    //   .lean();
-    
+    const query: any = {};
+    if (region && mongoose.Types.ObjectId.isValid(region)) {
+      query.region = region;
+    }
+
+    const villes = await Ville.find(query)
+      .sort({ name: 1 })
+      .lean();
+
     return NextResponse.json(villes, {
       headers: { 
         'Cache-Control': 'no-store, max-age=0',

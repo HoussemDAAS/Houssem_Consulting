@@ -19,7 +19,7 @@ export async function PUT(
   try {
     const body = await request.json();
     
-    // Name validation (only if name is being updated)
+    // Validate name if being updated
     if (body.name !== undefined) {
       if (!body.name?.trim()) {
         return NextResponse.json(
@@ -28,7 +28,7 @@ export async function PUT(
         );
       }
 
-      // Check for duplicate name (excluding current client)
+      // Check for duplicate name
       const existingClient = await Client.findOne({
         name: body.name.trim(),
         _id: { $ne: params.id }
@@ -42,12 +42,23 @@ export async function PUT(
       }
     }
 
-    const updateData = {
-      ...body,
-      name: body.name ? body.name.trim() : undefined,
-      secteur: body.secteur || null,
-      ville: body.ville || null,
-      contacts: body.contacts?.map((c: any) => ({
+    // Build update object dynamically
+    const updateData: Record<string, any> = {};
+    
+    if (body.name !== undefined) {
+      updateData.name = body.name.trim();
+    }
+    if (body.region !== undefined) {
+      updateData.region = body.region;
+    }
+    if (body.secteur !== undefined) {
+      updateData.secteur = body.secteur || null;
+    }
+    if (body.ville !== undefined) {
+      updateData.ville = body.ville || null;
+    }
+    if (body.contacts !== undefined) {
+      updateData.contacts = body.contacts?.map((c: any) => ({
         firstName: c.firstName || '',
         lastName: c.lastName || '',
         position: c.position || '',
@@ -55,8 +66,10 @@ export async function PUT(
         phone: c.phone || '',
         service: c.service || '',
         _id: c._id || new mongoose.Types.ObjectId()
-      })),
-      products: body.products?.map((p: any) => ({
+      }));
+    }
+    if (body.products !== undefined) {
+      updateData.products = body.products?.map((p: any) => ({
         product: p.product,
         fabriquant: p.fabriquant || '',
         modele: p.modele || '',
@@ -67,16 +80,16 @@ export async function PUT(
         versionLogiciel: p.versionLogiciel || '',
         autreInformation: p.autreInformation || '',
         addedAt: p.addedAt || new Date()
-      }))
-    };
+      }));
+    }
 
     const updatedClient = await Client.findByIdAndUpdate(
       params.id,
       { $set: updateData },
-      { 
-        new: true,
-        runValidators: true 
-      }
+      // { 
+      //   new: true,
+      //   runValidators: true 
+      // }
     )
     .populate('region')
     .populate('secteur')
@@ -95,7 +108,6 @@ export async function PUT(
     
   } catch (error: any) {
     console.error('Update error:', error);
-    // Handle MongoDB duplicate key error
     if (error.code === 11000) {
       return NextResponse.json(
         { error: 'Client with this name already exists' },

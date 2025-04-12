@@ -1,7 +1,8 @@
 // 
 // app/dashboard/page.tsx
 'use client';
-import DashboardBoard from '@/components/DashboardBoard';
+import ClientBoard from '@/components/ClientBoard';
+
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
 
@@ -9,7 +10,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       
-      <DashboardBoard />
+      <ClientBoard />
     </DashboardLayout>
   );
 }

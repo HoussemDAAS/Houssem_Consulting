@@ -73,7 +73,7 @@ const onSubmit = async (data: SignupFormData) => {
     }
 
     localStorage.setItem('user', JSON.stringify(loginResult.user));
-    router.push('/dashboard');
+    router.push('/CostumerManagement');
   } catch (err: any) {
     setError(err.message || 'Registration failed');
   } finally {

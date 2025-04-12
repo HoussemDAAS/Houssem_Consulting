@@ -55,7 +55,7 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (user?.token) router.push('/dashboard');
+    if (user?.token) router.push('/CostumerManagement');
   }, [user, router]);
 
   return (
