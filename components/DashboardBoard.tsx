@@ -1,29 +1,38 @@
-/* eslint-disable react/jsx-no-undef */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { PrinterIcon } from '@heroicons/react/24/outline';
 import FilterSelect from '@/components/FilterSelect';
 import { useAuth } from '@/context/AuthContext';
 import { ClientDocument } from '@/lib/models/Client';
-
-import RegionPieChart from './RegionPieChart';
+import { RegionDocument } from '@/lib/models/Region';
 import AnalyticsPieChart from './RegionPieChart';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
 const DashboardBoard = () => {
   const { user } = useAuth();
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
   // State management
-  const [countries, setCountries] = useState<any[]>([]);
-  const [allVilles, setAllVilles] = useState<any[]>([]);
+  const [countries, setCountries] = useState<RegionDocument[]>([]);
+  const [villes, setVilles] = useState<any[]>([]);
   const [clients, setClients] = useState<ClientDocument[]>([]);
   
   // Filter states
-  const [selectedCountries, setSelectedCountries] = useState<any[]>([]);
-  const [selectedCities, setSelectedCities] = useState<any[]>([]);
-  const [selectedManufacturers, setSelectedManufacturers] = useState<any[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [selectedSecteurs, setSelectedSecteurs] = useState<any[]>([]);
+  const [selectedCountries, setSelectedCountries] = useState<FilterOption[]>([]);
+  const [selectedCities, setSelectedCities] = useState<FilterOption[]>([]);
+  const [selectedManufacturers, setSelectedManufacturers] = useState<FilterOption[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<FilterOption[]>([]);
+  const [selectedSecteurs, setSelectedSecteurs] = useState<FilterOption[]>([]);
 
-  // Derived state
+  // Derived values
   const selectedRegionId = useMemo(() => 
     selectedCountries.length === 1 ? selectedCountries[0].value : null,
     [selectedCountries]
@@ -31,16 +40,47 @@ const DashboardBoard = () => {
 
   const filteredVilles = useMemo(() => {
     if (!selectedRegionId) return [];
-    return allVilles.filter(v => 
+    return villes.filter(v => 
       v.region?._id?.toString() === selectedRegionId || 
       v.region?.toString() === selectedRegionId
     );
-  }, [selectedRegionId, allVilles]);
+  }, [selectedRegionId, villes]);
 
   const manufacturers = useMemo(() => {
-    const allMfrs = clients.flatMap(c => c.products.map(p => p.fabriquant).filter(Boolean));
+    const allMfrs = clients.flatMap(c => 
+      c.products.map(p => p.fabriquant).filter(Boolean) as string[]
+    );
     return Array.from(new Set(allMfrs)).map(m => ({ value: m, label: m }));
   }, [clients]);
+
+  // PDF Generation
+  const handleExportPDF = async () => {
+    if (!pdfRef.current) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(pdfRef.current, {
+        scale: 2,
+        useCORS: true,
+        windowWidth: 210 * 3.78, // A4 width in pixels (210mm)
+        windowHeight: 297 * 3.78, // A4 height in pixels (297mm)
+        logging: true
+      });
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 190; // 210mm - 20mm margins
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, imgWidth, imgHeight);
+      pdf.save('analytics-report.pdf');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   // Data fetching
   useEffect(() => {
@@ -65,8 +105,11 @@ const DashboardBoard = () => {
 
         setCountries(countriesData);
         setClients(clientsData);
-        setAllVilles(villesData);
-        setSelectedCountries(countriesData.map(c => ({ value: c._id, label: c.name })));
+        setVilles(villesData);
+        setSelectedCountries(countriesData.map((c: RegionDocument) => ({ 
+          value: c._id.toString(), 
+          label: c.name 
+        })));
       } catch (error) {
         console.error('Data fetch error:', error);
       }
@@ -74,13 +117,14 @@ const DashboardBoard = () => {
     fetchInitialData();
   }, [user?.token]);
 
-  // Effects
   useEffect(() => {
     if (selectedCountries.length !== 1) setSelectedCities([]);
   }, [selectedCountries]);
 
-  
-  // Add this color array above the main component
+  // Check if any data exists
+  const hasData = useMemo(() => {
+    return clients.some(client => client.products.length > 0);
+  }, [clients]);
 
   return (
     <div className="flex flex-col h-full mt-12 md:mt-0">
@@ -89,11 +133,15 @@ const DashboardBoard = () => {
         <div className="p-4 md:p-6 ml-14 md:ml-0">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <h1 className="text-xl md:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
-              Activity per Login
+              Sales Analytics Dashboard
             </h1>
-            <button className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base">
+            <button 
+              onClick={handleExportPDF}
+              disabled={isGeneratingPDF}
+              className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base transition-all disabled:opacity-50"
+            >
               <PrinterIcon className="h-5 w-5" />
-              <span>Export PDF</span>
+              {isGeneratingPDF ? 'Generating...' : 'Export PDF'}
             </button>
           </div>
         </div>
@@ -108,13 +156,19 @@ const DashboardBoard = () => {
             value={selectedCountries}
             onChange={setSelectedCountries}
             isMulti
-            defaultOptions={countries.map(c => ({ value: c._id, label: c.name }))}
+            defaultOptions={countries.map(c => ({ 
+              value: c._id.toString(), 
+              label: c.name 
+            }))}
           />
 
           {selectedRegionId && (
             <FilterSelect
               label="City"
-              options={filteredVilles.map(v => ({ value: v._id, label: v.name }))}
+              options={filteredVilles.map(v => ({ 
+                value: v._id.toString(), 
+                label: v.name 
+              }))}
               value={selectedCities}
               onChange={setSelectedCities}
               isMulti
@@ -147,34 +201,74 @@ const DashboardBoard = () => {
         </div>
       </div>
 
-      {/* Content */}
+      {/* Main Content */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-6">
- 
-      <AnalyticsPieChart 
-    clients={clients}
-    countries={countries}
-    selectedManufacturers={selectedManufacturers.map(m => m.value)}
-    selectedCountries={selectedCountries.map(c => c.value)}
-  />
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <CountrySection title="Tunis" items={['Maroc', 'Algerie', 'Nigérie']} />
-          <CountrySection title="All Cities" items={['Alger', 'Armaba', 'Tunis', 'Bibert']} />
-          <CountrySection title="Manufacturers" items={['MMT', 'VMM', 'All Manufacturers']} />
-        </div>
+        {!hasData ? (
+          <div className="h-full flex items-center justify-center text-gray-500">
+            No data available in the system
+          </div>
+        ) : (
+          <AnalyticsPieChart 
+              clients={clients}
+              countries={countries}
+              villes={villes}
+              selectedManufacturers={selectedManufacturers.map(m => m.value)}
+              selectedCountries={selectedCountries.map(c => c.value)}
+              selectedCities={selectedCities.map(c => c.value)} isPDFVersion={false}          />
+        )}
       </div>
+
+      {/* PDF Template */}
+
+<div ref={pdfRef} className="absolute left-[-10000px] top-[-10000px]">
+  <div className="w-[210mm] min-h-[297mm] bg-white p-10">
+    <div className="text-center mb-8">
+      <img 
+        src="/logo.jpeg" 
+        alt="Company Logo" 
+        className="h-24 mx-auto mb-4"
+      />
+      <h1 className="text-2xl font-bold">Sales Analytics Report</h1>
+      <p className="text-gray-500 text-sm mt-2">
+        Generated: {new Date().toLocaleDateString()}
+      </p>
+    </div>
+
+    {!hasData ? (
+      <div className="h-[200mm] flex items-center justify-center text-gray-500 text-xl">
+        No data available in the system
+      </div>
+    ) : (
+      <>
+       <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+                <h2 className="text-lg font-semibold mb-4">Selected Filters</h2>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><strong>Countries:</strong> {selectedCountries.map(c => c.label).join(', ') || 'All'}</div>
+                  <div><strong>Cities:</strong> {selectedCities.map(c => c.label).join(', ') || 'All'}</div>
+                  <div><strong>Manufacturers:</strong> {selectedManufacturers.map(m => m.label).join(', ') || 'All'}</div>
+                  <div><strong>Products:</strong> {selectedProducts.map(p => p.label).join(', ') || 'All'}</div>
+                  <div><strong>Sectors:</strong> {selectedSecteurs.map(s => s.label).join(', ') || 'All'}</div>
+                </div>
+              </div>
+
+        {/* Fixed size chart container with left padding */}
+        <div className="pl-8 h-[190mm]"> {/* Added left padding */}
+          <AnalyticsPieChart 
+            clients={clients}
+            countries={countries}
+            villes={villes}
+            selectedManufacturers={selectedManufacturers.map(m => m.value)}
+            selectedCountries={selectedCountries.map(c => c.value)}
+            selectedCities={selectedCities.map(c => c.value)}
+            isPDFVersion={true} // Add this prop
+          />
+        </div>
+      </>
+    )}
+  </div>
+</div>
     </div>
   );
 };
-
-const CountrySection = ({ title, items }: { title: string; items: string[] }) => (
-  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-    <h3 className="font-medium mb-2">{title}</h3>
-    <div className="space-y-1 text-sm">
-      {items.map((item, index) => (
-        <p key={index}>{item}</p>
-      ))}
-    </div>
-  </div>
-);
 
 export default DashboardBoard;

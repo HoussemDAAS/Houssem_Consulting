@@ -110,6 +110,51 @@ input {
 body {
   transition: background-color 0.3s ease;
 }
+.pdf-template {
+  width: 210mm !important;
+  min-height: 297mm !important;
+  padding: 20mm;
+  background: white;
+  position: fixed;
+  left: -10000px;
+  top: -10000px;
+  visibility: hidden;
+}
+
+
+@page {
+  size: A4;
+  margin: 0;
+}
+@media print {
+  body {
+    visibility: hidden;
+  }
+  .pdf-template {
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+
+/* Prevent content shifting during PDF generation */
+.pdf-template {
+  background: white;
+  box-shadow: none;
+}
+
+
+.pdf-optimized .recharts-legend-wrapper {
+  bottom: -30px !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  width: 90% !important;
+}
+
+.pdf-optimized .recharts-pie {
+  margin-top: -20px;
+}
 @layer base {
   :root {
     --background: 0 0% 100%;
