@@ -10,7 +10,7 @@ interface ChartData {
   value: number;
 }
 
-interface LocationChartData {
+export interface LocationChartData { // Add export keyword
   locationName: string;
   data: ChartData[];
 }

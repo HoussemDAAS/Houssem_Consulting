@@ -6,14 +6,23 @@ import FilterSelect from '@/components/FilterSelect';
 import { useAuth } from '@/context/AuthContext';
 import { ClientDocument } from '@/lib/models/Client';
 import { RegionDocument } from '@/lib/models/Region';
-import AnalyticsPieChart from './RegionPieChart';
+import AnalyticsPieChart, { LocationChartData } from './RegionPieChart';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 interface FilterOption {
   value: string;
   label: string;
 }
+
+const stringToColor = (str: string): string => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return `hsl(${hash % 360}, 65%, 45%)`;
+};
 
 const DashboardBoard = () => {
   const { user } = useAuth();
@@ -59,21 +68,23 @@ const DashboardBoard = () => {
     
     setIsGeneratingPDF(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        windowWidth: 210 * 3.78, // A4 width in pixels (210mm)
-        windowHeight: 297 * 3.78, // A4 height in pixels (297mm)
-        logging: true
-      });
-
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 190; // 210mm - 20mm margins
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pages = pdfRef.current.children;
+  
+      for (let i = 0; i < pages.length; i++) {
+        if (i > 0) pdf.addPage();
+        
+        const canvas = await html2canvas(pages[i] as HTMLElement, {
+          scale: 2,
+          useCORS: true,
+          windowWidth: 210 * 3.78,
+          windowHeight: 297 * 3.78
+        });
 
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, imgWidth, imgHeight);
+        const imgData = canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+      }
+
       pdf.save('analytics-report.pdf');
     } catch (error) {
       console.error('PDF generation error:', error);
@@ -125,6 +136,58 @@ const DashboardBoard = () => {
   const hasData = useMemo(() => {
     return clients.some(client => client.products.length > 0);
   }, [clients]);
+
+  const getLocationData = (): LocationChartData[] => {
+    const useCityFilter = selectedCities.length > 0;
+    const selectedLocationIds = useCityFilter 
+      ? selectedCities.map(c => c.value)
+      : selectedCountries.map(c => c.value);
+
+    if (selectedLocationIds.length === 0) return [];
+
+    const validManufacturers = selectedManufacturers.map(m => m.value);
+    const locationMap = new Map<string, Map<string, number>>(
+      selectedLocationIds.map(locationId => [
+        locationId,
+        new Map(validManufacturers.map(m => [m, 0]))
+  ]));
+
+    clients.forEach(client => {
+      const locationId = useCityFilter 
+        ? client.ville?._id?.toString() || client.ville?.toString()
+        : client.region?._id?.toString() || client.region?.toString();
+
+      if (locationId && selectedLocationIds.includes(locationId)) {
+        client.products.forEach(product => {
+          const manufacturer = product.fabriquant;
+          if (manufacturer && validManufacturers.includes(manufacturer)) {
+            const counts = locationMap.get(locationId)!;
+            counts.set(manufacturer, (counts.get(manufacturer) || 0) + 1);
+          }
+        });
+      }
+    });
+
+    return selectedLocationIds.map(locationId => {
+      const manufacturers = locationMap.get(locationId)!;
+      const total = Array.from(manufacturers.values()).reduce((a, b) => a + b, 0);
+      
+      return {
+        locationName: useCityFilter
+          ? villes.find(v => v._id === locationId)?.name || locationId
+          : countries.find(c => c._id === locationId)?.name || locationId,
+        data: validManufacturers
+          .map(m => ({
+            name: m,
+            value: total > 0 ? Number(((manufacturers.get(m)! / total) * 100).toFixed(2)) : 0
+          }))
+          .filter(d => d.value > 0)
+          .sort((a, b) => b.value - a.value)
+      };
+    });
+  };
+
+  const locationData = getLocationData();
 
   return (
     <div className="flex flex-col h-full mt-12 md:mt-0">
@@ -209,63 +272,114 @@ const DashboardBoard = () => {
           </div>
         ) : (
           <AnalyticsPieChart 
-              clients={clients}
-              countries={countries}
-              villes={villes}
-              selectedManufacturers={selectedManufacturers.map(m => m.value)}
-              selectedCountries={selectedCountries.map(c => c.value)}
-              selectedCities={selectedCities.map(c => c.value)} isPDFVersion={false}          />
-        )}
-      </div>
-
-      {/* PDF Template */}
-
-<div ref={pdfRef} className="absolute left-[-10000px] top-[-10000px]">
-  <div className="w-[210mm] min-h-[297mm] bg-white p-10">
-    <div className="text-center mb-8">
-      <img 
-        src="/logo.jpeg" 
-        alt="Company Logo" 
-        className="h-24 mx-auto mb-4"
-      />
-      <h1 className="text-2xl font-bold">Sales Analytics Report</h1>
-      <p className="text-gray-500 text-sm mt-2">
-        Generated: {new Date().toLocaleDateString()}
-      </p>
-    </div>
-
-    {!hasData ? (
-      <div className="h-[200mm] flex items-center justify-center text-gray-500 text-xl">
-        No data available in the system
-      </div>
-    ) : (
-      <>
-       <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-                <h2 className="text-lg font-semibold mb-4">Selected Filters</h2>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><strong>Countries:</strong> {selectedCountries.map(c => c.label).join(', ') || 'All'}</div>
-                  <div><strong>Cities:</strong> {selectedCities.map(c => c.label).join(', ') || 'All'}</div>
-                  <div><strong>Manufacturers:</strong> {selectedManufacturers.map(m => m.label).join(', ') || 'All'}</div>
-                  <div><strong>Products:</strong> {selectedProducts.map(p => p.label).join(', ') || 'All'}</div>
-                  <div><strong>Sectors:</strong> {selectedSecteurs.map(s => s.label).join(', ') || 'All'}</div>
-                </div>
-              </div>
-
-        {/* Fixed size chart container with left padding */}
-        <div className="pl-8 h-[190mm]"> {/* Added left padding */}
-          <AnalyticsPieChart 
             clients={clients}
             countries={countries}
             villes={villes}
             selectedManufacturers={selectedManufacturers.map(m => m.value)}
             selectedCountries={selectedCountries.map(c => c.value)}
             selectedCities={selectedCities.map(c => c.value)}
-            isPDFVersion={true} // Add this prop
+            isPDFVersion={false}
           />
+        )}
+      </div>
+
+      {/* PDF Template */}
+      <div ref={pdfRef} className="absolute left-[-10000px] top-[-10000px]">
+  {Array.from({ length: Math.ceil(locationData.length / 2) }).map((_, index) => {
+    const start = index * 2;
+    const end = start + 2;
+    const pageData = locationData.slice(start, end);
+
+    return (
+      <div key={index} className="w-[210mm] h-[297mm] bg-white p-10">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <img src="/logo.jpeg" alt="Company Logo" className="h-24 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold">Sales Analytics Report</h1>
+          <p className="text-gray-500 text-sm mt-2">
+            Generated: {new Date().toLocaleDateString()}
+          </p>
         </div>
-      </>
-    )}
-  </div>
+
+        {/* Filters - Only on first page */}
+        {index === 0 && (
+          <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+            <h2 className="text-lg font-semibold mb-4">Selected Filters</h2>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div><strong>Countries:</strong> {selectedCountries.map(c => c.label).join(', ') || 'All'}</div>
+              <div><strong>Cities:</strong> {selectedCities.map(c => c.label).join(', ') || 'All'}</div>
+              <div><strong>Manufacturers:</strong> {selectedManufacturers.map(m => m.label).join(', ') || 'All'}</div>
+              <div><strong>Products:</strong> {selectedProducts.map(p => p.label).join(', ') || 'All'}</div>
+              <div><strong>Sectors:</strong> {selectedSecteurs.map(s => s.label).join(', ') || 'All'}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Charts */}
+        <div className="grid grid-cols-2 gap-4 h-[190mm]">
+          {pageData.map(({ locationName, data }) => (
+            <div key={locationName} className="h-full">
+              <div className="h-[420px]">
+                <h3 className="text-center text-gray-800 text-sm mb-1">
+                  {locationName}
+                </h3>
+                <ResponsiveContainer width="100%" height="100%">
+                        <PieChart margin={{ top: 20, right: 30, left: 30, bottom: 20 }}>
+                          <Pie
+                            data={data}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            dataKey="value"
+                            nameKey="name"
+                          >
+                            {data.map((entry, idx) => (
+                              <Cell 
+                                key={`cell-${idx}`}
+                                fill={stringToColor(entry.name)}
+                                stroke="#fff"
+                              />
+                            ))}
+                          </Pie>
+                          <Legend
+                            layout="horizontal"
+                            verticalAlign="bottom"
+                            wrapperStyle={{ paddingTop: 10 }}
+                            content={({ payload }) => (
+                              <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                                {payload?.map((entry, idx) => (
+                                  <div
+                                    key={`legend-${idx}`}
+                                    className="flex items-center text-xs"
+                                    style={{ color: entry.color }}
+                                  >
+                                    <span 
+                                      className="inline-block w-3 h-3 mr-2 rounded-full"
+                                      style={{ backgroundColor: entry.color }}
+                                    />
+                                    <span className="whitespace-normal">
+                                      {entry.value} • {entry.payload?.value.toFixed(1)}%
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Page number */}
+        <div className="mt-4 text-center text-sm text-gray-500">
+          Page {index + 1} of {Math.ceil(locationData.length / 2)}
+        </div>
+      </div>
+    );
+  })}
 </div>
     </div>
   );
