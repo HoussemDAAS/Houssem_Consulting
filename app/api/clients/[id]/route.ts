@@ -12,8 +12,9 @@ import mongoose from 'mongoose';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   await dbConnect();
   
   try {
@@ -30,13 +31,14 @@ export async function PUT(
 
       // Check for duplicate name
       const existingClient = await Client.findOne({
-        name: body.name.trim(),
-        _id: { $ne: params.id }
+        name: { $regex: new RegExp(`^${body.name.trim()}$`, 'i') },
+        _id: { $ne: new mongoose.Types.ObjectId(params.id) }
       });
       
       if (existingClient) {
+        console.log(`Duplicate found: '${existingClient.name}' (ID: ${existingClient._id}) conflicts with update for '${body.name.trim()}' (ID: ${params.id})`);
         return NextResponse.json(
-          { error: 'Another client with this name already exists' },
+          { error: `Another client with this name already exists (ID: ${existingClient._id})` },
           { status: 409 }
         );
       }
@@ -45,6 +47,9 @@ export async function PUT(
     // Build update object dynamically
     const updateData: Record<string, any> = {};
     
+    if (body.address !== undefined) {
+      updateData.address = body.address.trim();
+    }
     if (body.name !== undefined) {
       updateData.name = body.name.trim();
     }
@@ -86,10 +91,10 @@ export async function PUT(
     const updatedClient = await Client.findByIdAndUpdate(
       params.id,
       { $set: updateData },
-      // { 
-      //   new: true,
-      //   runValidators: true 
-      // }
+      { 
+        new: true,
+        runValidators: true 
+      }
     )
     .populate('region')
     .populate('secteur')
@@ -120,7 +125,8 @@ export async function PUT(
     );
   }
 }
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   await dbConnect();
   try {
     await Client.findByIdAndDelete(params.id);

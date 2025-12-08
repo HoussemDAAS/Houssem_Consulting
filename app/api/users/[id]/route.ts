@@ -4,7 +4,8 @@ import dbConnect from '@/lib/dbConnect';
 import User from '@/lib/models/User';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
     try {
       await dbConnect();
       const authHeader = request.headers.get('Authorization');
@@ -83,7 +84,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     }
   }
   
-  export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
     try {
       await dbConnect();
       const authHeader = request.headers.get('Authorization');

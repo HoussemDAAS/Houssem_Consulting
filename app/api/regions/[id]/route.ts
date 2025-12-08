@@ -6,8 +6,9 @@ import Client from '@/lib/models/Client';
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } } // Properly get ID from route params
+  props: { params: Promise<{ id: string }> } // Properly get ID from route params
 ) {
+  const params = await props.params;
   await dbConnect();
   
   try {
@@ -48,8 +49,9 @@ export async function DELETE(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } } // Properly get ID from route params
+  props: { params: Promise<{ id: string }> } // Properly get ID from route params
 ) {
+  const params = await props.params;
   await dbConnect();
   
   try {

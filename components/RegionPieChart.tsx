@@ -1,27 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useEffect, useState } from 'react';
-import { ClientDocument } from '@/lib/models/Client';
+import { ClientDocument, ClientProduct } from '@/lib/models/Client';
 import { RegionDocument } from '@/lib/models/Region';
+import { ProductDocument } from '@/lib/models/Product';
+
+interface PopulatedClient extends Omit<ClientDocument, 'region' | 'ville' | 'secteur' | 'products'> {
+  region: RegionDocument;
+  ville?: { _id: string; name: string };
+  secteur?: { _id: string; name: string };
+  products: (Omit<ClientProduct, 'product'> & { product: ProductDocument })[];
+}
 
 interface ChartData {
   name: string;
   value: number;
 }
 
-export interface LocationChartData { // Add export keyword
+export interface LocationChartData {
   locationName: string;
   data: ChartData[];
 }
 
 interface AnalyticsPieChartProps {
-  clients: ClientDocument[];
+  clients: PopulatedClient[];
   countries: RegionDocument[];
   villes: any[];
   selectedManufacturers: string[];
   selectedCountries: string[];
   selectedCities: string[];
+  selectedProducts: string[];
+  selectedSecteurs: string[];
   isPDFVersion: boolean
 }
 
@@ -40,65 +50,124 @@ const AnalyticsPieChart = ({
   selectedManufacturers,
   selectedCountries,
   selectedCities,
+  selectedProducts = [],
+  selectedSecteurs = [],
   isPDFVersion = false
 }: AnalyticsPieChartProps) => {
-  const [isMobile, setIsMobile] = useState(false);
   const useCityFilter = selectedCities.length > 0;
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const getChartData = (): LocationChartData[] => {
     // Get all selected location IDs
     const selectedLocationIds = useCityFilter ? selectedCities : selectedCountries;
     if (selectedLocationIds.length === 0) return [];
 
-    // Use only explicitly selected manufacturers
-    const validManufacturers = selectedManufacturers;
-
     // Initialize location map with all selected locations
+    // Map: LocationID -> Map<ItemName, Count>
     const locationMap = new Map<string, Map<string, number>>(
       selectedLocationIds.map(locationId => [
         locationId,
-        new Map<string, number>(validManufacturers.map(m => [m, 0]))
+        new Map<string, number>()
       ])
     );
 
-    // Populate the manufacturer counts
+    // Populate the counts
     clients.forEach(client => {
+      // 1. Filter by Location
       const locationId = useCityFilter 
         ? client.ville?._id?.toString() || client.ville?.toString()
         : client.region?._id?.toString() || client.region?.toString();
 
       if (!locationId || !selectedLocationIds.includes(locationId)) return;
 
-      client.products.forEach(product => {
-        const manufacturer = product.fabriquant;
-        if (!manufacturer || !validManufacturers.includes(manufacturer)) return;
+      // 2. Filter by Secteur
+      // If products are selected, we IGNORE the sector filter to ensure the product is shown
+      // Otherwise, we respect the sector filter
+      if (selectedProducts.length === 0 && selectedSecteurs.length > 0) {
+        const clientSecteurId = client.secteur?._id?.toString() || client.secteur?.toString();
+        // If client has no sector or sector not selected, skip
+        if (!clientSecteurId || !selectedSecteurs.includes(clientSecteurId)) return;
+      }
 
-        const locationCounts = locationMap.get(locationId)!;
-        locationCounts.set(manufacturer, (locationCounts.get(manufacturer) || 0) + 1);
+      // 3. Process Products
+      client.products.forEach(product => {
+        const prodRef: any = product.product;
+        if (!prodRef) return;
+
+        let productId: string | undefined;
+        let productName: string | undefined;
+
+        if (prodRef._id) {
+          productId = prodRef._id.toString();
+          productName = prodRef.name;
+        } else if (typeof prodRef === 'string') {
+          productId = prodRef;
+          productName = prodRef;
+        }
+
+        if (!productId || !productName) return;
+
+        // --- FILTERING LOGIC ---
+        let shouldCount = false;
+
+        // 1. If Manufacturer is Selected: Filter by it
+        if (selectedManufacturers.length > 0) {
+           const manufacturer = product.fabriquant;
+           if (manufacturer && selectedManufacturers.includes(manufacturer)) {
+              // If manufacturer matches, we consider showing it
+              // BUT if specific products are ALSO selected, we need to respect that intersection
+              if (selectedProducts.length > 0) {
+                 if (selectedProducts.includes(productId)) {
+                    shouldCount = true;
+                 }
+              } else {
+                 shouldCount = true;
+              }
+           }
+        } 
+        // 2. If Secteur is Selected (and no Manufacturer selected): Filter by it
+        else if (selectedSecteurs.length > 0) {
+             // We already filtered by Sector at the client level (Step 2 above)
+             // So here we just need to check if product matches selected products (if any)
+             if (selectedProducts.length > 0) {
+                 if (selectedProducts.includes(productId)) {
+                    shouldCount = true;
+                 }
+             } else {
+                 shouldCount = true;
+             }
+        }
+        // 3. If ONLY Products are Selected (Default State): Show selected products
+        else if (selectedProducts.length > 0) {
+           if (selectedProducts.includes(productId)) {
+             shouldCount = true;
+           }
+        }
+        // 4. Fallback: No filters selected (Shouldn't happen with default All Products)
+        else {
+           shouldCount = true;
+        }
+
+        if (shouldCount) {
+           const locationCounts = locationMap.get(locationId)!;
+           locationCounts.set(productName, (locationCounts.get(productName) || 0) + 1);
+        }
       });
     });
 
     // Convert to chart data format
     return selectedLocationIds.map(locationId => {
-      const manufacturers = locationMap.get(locationId)!;
-      const totalProducts = Array.from(manufacturers.values()).reduce((sum, count) => sum + count, 0);
+      const itemsMap = locationMap.get(locationId)!;
+      const totalItems = Array.from(itemsMap.values()).reduce((sum, count) => sum + count, 0);
       
       const locationName = useCityFilter
         ? villes.find(v => v._id === locationId)?.name || locationId
         : countries.find(c => c._id === locationId)?.name || locationId;
 
-      const data = validManufacturers
-        .map(manufacturer => ({
-          name: manufacturer,
-          value: totalProducts > 0 
-            ? Number(((manufacturers.get(manufacturer)! / totalProducts) * 100).toFixed(2))
+      const data = Array.from(itemsMap.entries())
+        .map(([name, count]) => ({
+          name: name,
+          value: totalItems > 0 
+            ? Number(((count / totalItems) * 100).toFixed(2))
             : 0,
         }))
         .filter(item => item.value > 0)
@@ -113,16 +182,8 @@ const AnalyticsPieChart = ({
   const noData = locationData.every(l => l.data.length === 0);
 
   // First check if manufacturers are selected
-  if (selectedManufacturers.length === 0) {
-    return (
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6 h-[400px] flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400 text-center">
-          Please select at least one manufacturer to view the distribution
-        </p>
-      </div>
-    );
-  }
-
+  // REMOVED CHECK: if (selectedManufacturers.length === 0)
+  
   if (!hasLocationSelection) {
     return (
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6 h-[400px] flex items-center justify-center">
@@ -145,93 +206,90 @@ const AnalyticsPieChart = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6">
-      <h2 className="text-lg font-semibold mb-3">
+      <h2 className="text-lg font-semibold mb-6">
         {useCityFilter ? 'City Distribution' : 'Regional Distribution'}
       </h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {locationData.map(({ locationName, data }) => (
-          <div key={locationName} className="h-[420px]">
-            <h3 className="text-center  text-gray-800 dark:text-gray-200 text-sm">
+          <div key={locationName} className="flex flex-col h-full border border-gray-100 dark:border-gray-700 rounded-xl p-4">
+            <h3 className="text-center font-medium text-gray-800 dark:text-gray-200 mb-4">
               {locationName}
             </h3>
             
-            <ResponsiveContainer 
-        width={isPDFVersion ? "95%" : "100%"} 
-        height={isPDFVersion ? 500 : "100%"}
-      >
-          <PieChart margin={isPDFVersion ? { 
-                      top: 20, 
-                      right: 30, 
-                      left: 30, 
-                      bottom: 20 
-                    } : (isMobile ? { bottom: 80 } : { right: 120 })}>
-                <Pie
-                  data={data}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={isMobile ? 50 : 60}
-                  outerRadius={isMobile ? 70 : 80}
-                  paddingAngle={1}
-                  dataKey="value"
-                  nameKey="name"
-                >
-                  {data.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`}
-                      fill={stringToColor(entry.name)}
-                      stroke="#fff"
-                      strokeWidth={0.2}
-                    />
-                  ))}
-                </Pie>
-
-                <Legend
-                  layout={isMobile || isPDFVersion ? "horizontal" : "vertical"}
-                  verticalAlign={isMobile|| isPDFVersion ? "bottom" : "middle"}
-                  align={isMobile || isPDFVersion  ? "center" : "right"}
-                  wrapperStyle={{
-                    paddingTop: isMobile ? 10 : 0,
-                    paddingLeft: isMobile ? 0 : 15,
-                    maxWidth: isMobile ? '100%' : 140
-                  }}
-                  content={({ payload }) => (
-                    <div className={isMobile ? 
-                      'flex flex-wrap justify-center gap-x-4 gap-y-2' : 
-                      'space-y-1 pr-2'
-                    }>
-                      {payload?.map((entry, index) => (
-                        <div
-                          key={`legend-${index}`}
-                          className="flex items-center text-xs"
-                          style={{ color: entry.color }}
-                        >
-                          <span 
-                            className="inline-block w-3 h-3 mr-2 rounded-full"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="whitespace-normal">
-                            {entry.value} • {entry.payload?.value.toFixed(1)}%
-                          </span>
-                        </div>
+            <div className={`flex ${isPDFVersion ? 'flex-col items-center' : 'flex-col lg:flex-row items-center'} gap-4 h-full`}>
+              {/* Chart Section */}
+              <div className={`${isPDFVersion ? 'w-full h-[300px]' : 'w-full lg:w-1/2 h-[250px] lg:h-[300px]'}`}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      {data.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`}
+                          fill={stringToColor(entry.name)}
+                          strokeWidth={0}
+                        />
                       ))}
-                    </div>
-                  )}
-                />
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        return (
+                          <div className="bg-gray-800/95 backdrop-blur-sm text-white p-3 rounded-lg shadow-xl text-xs border border-gray-700">
+                            <p className="font-medium mb-1">{payload[0].name}</p>
+                            <div className="flex justify-between gap-4">
+                              <span className="text-gray-300">Share:</span>
+                              <span className="font-bold">{payload[0].value?.toFixed(1)}%</span>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
 
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
-                    return (
-                      <div className="bg-gray-700 text-white p-2 rounded-md shadow-md text-xs">
-                        <p className="font-medium">{payload[0].name}</p>
-                        <p>{payload[0].value?.toFixed(2)}% of {locationName}'s total</p>
+              {/* Custom Legend Section */}
+              <div className={`${
+                isPDFVersion 
+                  ? 'w-full' 
+                  : 'w-full lg:w-1/2 max-h-[200px] lg:max-h-[300px] overflow-y-auto pr-2 custom-scrollbar'
+              }`}>
+                <div className={`flex flex-wrap gap-2 ${isPDFVersion ? 'justify-center' : 'lg:flex-col lg:justify-start'}`}>
+                  {data.map((entry, index) => (
+                    <div
+                      key={`legend-${index}`}
+                      className={`flex items-center gap-2 text-xs p-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                        isPDFVersion ? 'border border-gray-100' : ''
+                      }`}
+                      title={entry.name}
+                    >
+                      <span 
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: stringToColor(entry.name) }}
+                      />
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium truncate max-w-[150px] text-gray-700 dark:text-gray-300">
+                          {entry.name}
+                        </span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {entry.value.toFixed(1)}%
+                        </span>
                       </div>
-                    );
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         ))}
       </div>

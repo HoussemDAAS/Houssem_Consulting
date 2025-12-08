@@ -1,25 +1,32 @@
-// /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { ClientDocument } from '@/lib/models/Client';
+import { ClientDocument, ClientProduct } from '@/lib/models/Client';
 import { RegionDocument } from '@/lib/models/Region';
+import { ProductDocument } from '@/lib/models/Product';
 import ClientRegionGroup from './ClientRegionGroup';
 import ClientForm from './ClientForm';
 import { Skeleton } from './ui/Skeleton';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
+interface PopulatedClient extends Omit<ClientDocument, 'region' | 'ville' | 'secteur' | 'products'> {
+  region: RegionDocument;
+  ville?: { _id: string; name: string };
+  secteur?: { _id: string; name: string };
+  products: (Omit<ClientProduct, 'product'> & { product: ProductDocument })[];
+}
+
 export default function ClientBoard() {
   const { user } = useAuth();
-  const [clients, setClients] = useState<ClientDocument[]>([]);
+  const [clients, setClients] = useState<PopulatedClient[]>([]);
   const [regions, setRegions] = useState<RegionDocument[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [editingClient, setEditingClient] = useState<ClientDocument | null>(null);
+  const [editingClient, setEditingClient] = useState<PopulatedClient | null>(null);
 
   const fetchData = async () => {
     try {
@@ -65,20 +72,30 @@ export default function ClientBoard() {
   }, [user?.token]);
 
   const groupClientsByRegion = () => {
-    const grouped = new Map<string, ClientDocument[]>();
+    // Note: Map stores PopulatedClient[]
     
     const sortedClients = [...clients].sort((a, b) => 
       a.name.localeCompare(b.name)
     );
   
     // Create groups with sorted clients
+    const grouped = new Map<string, PopulatedClient[]>();
+    
     sortedClients.forEach(client => {
-      const regionId = client.region?._id?.toString();
+      // Safely access _id
+      const regionId = client.region?._id?.toString() || (client.region as any)?.toString();
       if (regionId) {
         if (!grouped.has(regionId)) {
           grouped.set(regionId, []);
         }
         grouped.get(regionId)?.push(client);
+      } else {
+        // Handle clients without a region (Unassigned)
+        const unassignedKey = 'unassigned';
+        if (!grouped.has(unassignedKey)) {
+          grouped.set(unassignedKey, []);
+        }
+        grouped.get(unassignedKey)?.push(client);
       }
     });
   
@@ -137,14 +154,14 @@ return (
   <div className="p-4 md:p-6 ml-14 md:ml-0"> 
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <h1 className="text-xl md:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4] truncate">
-        Costumer Management 
+        Customer Management 
       </h1>
           <button
             onClick={() => setShowCreateForm(true)}
             className="bg-[#ccbeac] hover:bg-[#ccbeac]/90 text-[#0b0b0b] px-4 py-2 rounded-lg flex items-center gap-2 w-full md:w-auto justify-center text-sm md:text-base"
           >
             <PlusIcon className="h-5 w-5" />
-            <span>Add Costumer</span>
+            <span>Add Customer</span>
           </button>
         </div>
       </div>
@@ -169,20 +186,38 @@ return (
 
       {/* Added space-y-6 to maintain region spacing */}
       <div className="space-y-6">
-        {groupClientsByRegion().map(([regionId, regionClients]) => (
-          <ClientRegionGroup
-            key={regionId}
-            region={regions.find(r => r._id.toString() === regionId)!}
-            clients={regionClients}
-            regions={regions}
-            products={products}
-            onEditClient={(client) => {
-              setEditingClient(client);
-              setShowEditForm(true);
-            }}
-            onDeleteClient={handleDeleteClient}
-          />
-        ))}
+        {groupClientsByRegion().map(([regionId, regionClients]) => {
+          if (regionId === 'unassigned') {
+            return (
+              <ClientRegionGroup
+                key="unassigned"
+                region={{ _id: 'unassigned', name: 'Unassigned', code: 'N/A' } as any}
+                clients={regionClients}
+                regions={regions}
+                products={products}
+                onEditClient={(client) => {
+                  setEditingClient(client);
+                  setShowEditForm(true);
+                }}
+                onDeleteClient={handleDeleteClient}
+              />
+            );
+          }
+          return (
+            <ClientRegionGroup
+              key={regionId}
+              region={regions.find(r => r._id.toString() === regionId)!}
+              clients={regionClients}
+              regions={regions}
+              products={products}
+              onEditClient={(client) => {
+                setEditingClient(client);
+                setShowEditForm(true);
+              }}
+              onDeleteClient={handleDeleteClient}
+            />
+          );
+        })}
       </div>
 
       {editingClient && (

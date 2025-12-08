@@ -5,14 +5,22 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { AnimatePresence, motion } from 'framer-motion';
 import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Select from 'react-select';
-import { ClientDocument } from '@/lib/models/Client';
+import { ClientDocument, ClientProduct } from '@/lib/models/Client';
 import { RegionDocument } from '@/lib/models/Region';
 import { ProductDocument } from '@/lib/models/Product';
+
+// Define a populated version of the Client interface for the form
+interface PopulatedClient extends Omit<ClientDocument, 'region' | 'ville' | 'secteur' | 'products'> {
+  region: RegionDocument;
+  ville?: { _id: string; name: string };
+  secteur?: { _id: string; name: string };
+  products: (Omit<ClientProduct, 'product'> & { product: ProductDocument })[];
+}
 
 interface ClientFormProps {
   isOpen: boolean;
   onClose: () => void;
-  client?: ClientDocument;
+  client?: PopulatedClient;
   refreshClients: () => void;
   regions: RegionDocument[];
   products: ProductDocument[];
@@ -73,9 +81,9 @@ export default function ClientForm({
       reset({
         name: client.name,
         region: client.region._id.toString(),
-        products: client.products.map(p => ({
+        products: client.products.map((p) => ({
           ...p,
-          product: (p.product as any)._id.toString(),
+          product: p.product._id.toString(),
           fabriquant: p.fabriquant || '',
           modele: p.modele || '',
           status: p.status || 'negotiation',
@@ -209,7 +217,7 @@ export default function ClientForm({
                 <div className="pb-4 sm:pb-6">
                   <div className="flex justify-between items-center pb-3 sm:pb-4 ">
                     <h2 className="text-xl sm:text-2xl font-bold text-[#0b0b0b] dark:text-[#f9f9f4]">
-                      {client ? 'Edit Costumer' : 'New Costumer'}
+                      {client ? 'Edit Customer' : 'New Customer'}
                     </h2>
                     <button type="button" onClick={onClose} className="text-[#0b0b0b] dark:text-[#ccbeac] hover:opacity-75">
                       <XMarkIcon className="h-6 w-6 sm:h-7 sm:w-7" />
@@ -405,33 +413,41 @@ export default function ClientForm({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="sm:col-span-2">
-                      <Controller
+                        <label className="block text-sm font-medium text-[#0b0b0b] dark:text-[#ccbeac] mb-1">Product *</label>
+                        <Controller
                           name={`products.${productIndex}.product`}
                           control={control}
-                          rules={{ required: true }}
+                          rules={{ required: 'Product selection is required' }}
                           render={({ field }) => {
                             const options = products.map(p => ({
                               value: p._id.toString(),
                               label: p.name,
                             }));
                             return (
-                              <Select
-                                options={options}
-                                value={options.find(o => o.value === field.value)}
-                                onChange={(option) => field.onChange(option?.value || '')}
-                                className="react-select-container"
-                                classNamePrefix="react-select"
-                                styles={{
-                                  control: (base) => ({
-                                    ...base,
-                                    borderColor: '#ccbeac',
-                                    minHeight: '2.5rem',
-                                    fontSize: '14px',
-                                  }),
-                                  menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                }}
-                                menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
-                              />
+                              <>
+                                <Select
+                                  options={options}
+                                  value={options.find(o => o.value === field.value)}
+                                  onChange={(option) => field.onChange(option?.value || '')}
+                                  className="react-select-container"
+                                  classNamePrefix="react-select"
+                                  styles={{
+                                    control: (base) => ({
+                                      ...base,
+                                      borderColor: errors.products?.[productIndex]?.product ? '#ef4444' : '#ccbeac',
+                                      minHeight: '2.5rem',
+                                      fontSize: '14px',
+                                    }),
+                                    menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                  }}
+                                  menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                                />
+                                {errors.products?.[productIndex]?.product && (
+                                  <p className="text-red-500 text-xs mt-1">
+                                    {errors.products[productIndex]?.product?.message || 'Product is required'}
+                                  </p>
+                                )}
+                              </>
                             );
                           }}
                         />

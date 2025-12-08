@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              Costumer Management
+              Customer Management
             </Link>
 
             <Link
