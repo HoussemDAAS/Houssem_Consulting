@@ -18,9 +18,14 @@ interface ChartData {
   value: number;
 }
 
+export interface ProductChartData {
+  productName: string;
+  data: ChartData[]; // Manufacturers data
+}
+
 export interface LocationChartData {
   locationName: string;
-  data: ChartData[];
+  products: ProductChartData[];
 }
 
 interface AnalyticsPieChartProps {
@@ -62,11 +67,11 @@ const AnalyticsPieChart = ({
     if (selectedLocationIds.length === 0) return [];
 
     // Initialize location map with all selected locations
-    // Map: LocationID -> Map<ItemName, Count>
-    const locationMap = new Map<string, Map<string, number>>(
+    // Map: LocationID -> Map<ProductName, Map<ManufacturerName, Count>>
+    const locationMap = new Map<string, Map<string, Map<string, number>>>(
       selectedLocationIds.map(locationId => [
         locationId,
-        new Map<string, number>()
+        new Map<string, Map<string, number>>()
       ])
     );
 
@@ -80,12 +85,9 @@ const AnalyticsPieChart = ({
       if (!locationId || !selectedLocationIds.includes(locationId)) return;
 
       // 2. Filter by Secteur
-      // If products are selected, we IGNORE the sector filter to ensure the product is shown
-      // Otherwise, we respect the sector filter
-      if (selectedProducts.length === 0 && selectedSecteurs.length > 0) {
-        const clientSecteurId = client.secteur?._id?.toString() || client.secteur?.toString();
-        // If client has no sector or sector not selected, skip
-        if (!clientSecteurId || !selectedSecteurs.includes(clientSecteurId)) return;
+      if (selectedSecteurs.length > 0) {
+         const clientSecteurId = client.secteur?._id?.toString() || client.secteur?.toString();
+         if (!clientSecteurId || !selectedSecteurs.includes(clientSecteurId)) return;
       }
 
       // 3. Process Products
@@ -106,84 +108,75 @@ const AnalyticsPieChart = ({
 
         if (!productId || !productName) return;
 
-        // --- FILTERING LOGIC ---
-        let shouldCount = false;
+        // REQUIRE explicit product selection - don't show anything if no products selected
+        if (selectedProducts.length === 0) return;
 
-        // 1. If Manufacturer is Selected: Filter by it
+        // Only include selected products
+        if (!selectedProducts.includes(productId)) return;
+
+        // If specific manufacturers are selected, skip if not in list
+        const manufacturer = product.fabriquant;
         if (selectedManufacturers.length > 0) {
-           const manufacturer = product.fabriquant;
-           if (manufacturer && selectedManufacturers.includes(manufacturer)) {
-              // If manufacturer matches, we consider showing it
-              // BUT if specific products are ALSO selected, we need to respect that intersection
-              if (selectedProducts.length > 0) {
-                 if (selectedProducts.includes(productId)) {
-                    shouldCount = true;
-                 }
-              } else {
-                 shouldCount = true;
-              }
-           }
-        } 
-        // 2. If Secteur is Selected (and no Manufacturer selected): Filter by it
-        else if (selectedSecteurs.length > 0) {
-             // We already filtered by Sector at the client level (Step 2 above)
-             // So here we just need to check if product matches selected products (if any)
-             if (selectedProducts.length > 0) {
-                 if (selectedProducts.includes(productId)) {
-                    shouldCount = true;
-                 }
-             } else {
-                 shouldCount = true;
-             }
+            if (!manufacturer || !selectedManufacturers.includes(manufacturer)) return;
         }
-        // 3. If ONLY Products are Selected (Default State): Show selected products
-        else if (selectedProducts.length > 0) {
-           if (selectedProducts.includes(productId)) {
-             shouldCount = true;
-           }
-        }
-        // 4. Fallback: No filters selected (Shouldn't happen with default All Products)
-        else {
-           shouldCount = true;
-        }
+        
+        const finalManufacturer = manufacturer || 'Unknown';
 
-        if (shouldCount) {
-           const locationCounts = locationMap.get(locationId)!;
-           locationCounts.set(productName, (locationCounts.get(productName) || 0) + 1);
+        // Add to map
+        const locMap = locationMap.get(locationId)!;
+        
+        if (!locMap.has(productName)) {
+            locMap.set(productName, new Map<string, number>());
         }
+        
+        const prodMap = locMap.get(productName)!;
+        prodMap.set(finalManufacturer, (prodMap.get(finalManufacturer) || 0) + 1);
       });
     });
 
     // Convert to chart data format
     return selectedLocationIds.map(locationId => {
-      const itemsMap = locationMap.get(locationId)!;
-      const totalItems = Array.from(itemsMap.values()).reduce((sum, count) => sum + count, 0);
+      const locMap = locationMap.get(locationId)!;
       
       const locationName = useCityFilter
         ? villes.find(v => v._id === locationId)?.name || locationId
         : countries.find(c => c._id === locationId)?.name || locationId;
 
-      const data = Array.from(itemsMap.entries())
-        .map(([name, count]) => ({
-          name: name,
-          value: totalItems > 0 
-            ? Number(((count / totalItems) * 100).toFixed(2))
-            : 0,
-        }))
-        .filter(item => item.value > 0)
-        .sort((a, b) => b.value - a.value);
+      const products: ProductChartData[] = Array.from(locMap.entries()).map(([pName, mfrMap]) => {
+          const totalItems = Array.from(mfrMap.values()).reduce((sum, count) => sum + count, 0);
+          
+          const data = Array.from(mfrMap.entries())
+            .map(([mName, count]) => ({
+              name: mName,
+              value: totalItems > 0 
+                ? Number(((count / totalItems) * 100).toFixed(2))
+                : 0,
+            }))
+            .filter(item => item.value > 0)
+            .sort((a, b) => b.value - a.value);
+            
+          return { productName: pName, data };
+      }).filter(p => p.data.length > 0);
 
-      return { locationName, data };
+      return { locationName, products };
     });
   };
 
   const locationData = getChartData();
   const hasLocationSelection = selectedCities.length > 0 || selectedCountries.length > 0;
-  const noData = locationData.every(l => l.data.length === 0);
+  const noData = locationData.every(l => l.products.length === 0);
 
-  // First check if manufacturers are selected
-  // REMOVED CHECK: if (selectedManufacturers.length === 0)
-  
+  // Check if products are selected FIRST
+  if (selectedProducts.length === 0) {
+    return (
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6 h-[400px] flex items-center justify-center">
+        <p className="text-gray-500 dark:text-gray-400 text-center">
+          Please select at least one product to view the chart
+        </p>
+      </div>
+    );
+  }
+
   if (!hasLocationSelection) {
     return (
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6 h-[400px] flex items-center justify-center">
@@ -198,101 +191,77 @@ const AnalyticsPieChart = ({
     return (
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6 h-[400px] flex items-center justify-center">
         <p className="text-gray-500 dark:text-gray-400 text-center">
-          No data found for selected manufacturers in these locations
+          No data available for the selected criteria
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6">
-      <h2 className="text-lg font-semibold mb-6">
-        {useCityFilter ? 'City Distribution' : 'Regional Distribution'}
-      </h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {locationData.map(({ locationName, data }) => (
-          <div key={locationName} className="flex flex-col h-full border border-gray-100 dark:border-gray-700 rounded-xl p-4">
-            <h3 className="text-center font-medium text-gray-800 dark:text-gray-200 mb-4">
-              {locationName}
-            </h3>
-            
-            <div className={`flex ${isPDFVersion ? 'flex-col items-center' : 'flex-col lg:flex-row items-center'} gap-4 h-full`}>
-              {/* Chart Section */}
-              <div className={`${isPDFVersion ? 'w-full h-[300px]' : 'w-full lg:w-1/2 h-[250px] lg:h-[300px]'}`}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {data.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`}
-                          fill={stringToColor(entry.name)}
-                          strokeWidth={0}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (!active || !payload?.length) return null;
-                        return (
-                          <div className="bg-gray-800/95 backdrop-blur-sm text-white p-3 rounded-lg shadow-xl text-xs border border-gray-700">
-                            <p className="font-medium mb-1">{payload[0].name}</p>
-                            <div className="flex justify-between gap-4">
-                              <span className="text-gray-300">Share:</span>
-                              <span className="font-bold">{payload[0].value?.toFixed(1)}%</span>
-                            </div>
-                          </div>
-                        );
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Custom Legend Section */}
-              <div className={`${
-                isPDFVersion 
-                  ? 'w-full' 
-                  : 'w-full lg:w-1/2 max-h-[200px] lg:max-h-[300px] overflow-y-auto pr-2 custom-scrollbar'
-              }`}>
-                <div className={`flex flex-wrap gap-2 ${isPDFVersion ? 'justify-center' : 'lg:flex-col lg:justify-start'}`}>
-                  {data.map((entry, index) => (
-                    <div
-                      key={`legend-${index}`}
-                      className={`flex items-center gap-2 text-xs p-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                        isPDFVersion ? 'border border-gray-100' : ''
-                      }`}
-                      title={entry.name}
-                    >
-                      <span 
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: stringToColor(entry.name) }}
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-medium truncate max-w-[150px] text-gray-700 dark:text-gray-300">
-                          {entry.name}
-                        </span>
-                        <span className="text-gray-500 dark:text-gray-400">
-                          {entry.value.toFixed(1)}%
-                        </span>
-                      </div>
+    <div className="space-y-8">
+      {locationData.map((location) => (
+        <div key={location.locationName} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white border-b pb-2">
+            {location.locationName}
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {location.products.map((product) => (
+                <div key={product.productName} className="flex flex-col h-[400px] border rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                    <h3 className="text-center font-semibold text-lg mb-4 text-gray-700 dark:text-gray-200">
+                        {product.productName}
+                    </h3>
+                    
+                    <div className="flex-1 min-h-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={product.data}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={80}
+                                paddingAngle={2}
+                                dataKey="value"
+                                nameKey="name"
+                            >
+                                {product.data.map((entry, index) => (
+                                    <Cell 
+                                        key={`cell-${index}`} 
+                                        fill={stringToColor(entry.name)} 
+                                        strokeWidth={0}
+                                    />
+                                ))}
+                            </Pie>
+                            <Tooltip 
+                                formatter={(value: number) => `${value}%`}
+                                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            />
+                        </PieChart>
+                        </ResponsiveContainer>
                     </div>
-                  ))}
+
+                    <div className="mt-4 flex flex-wrap gap-2 justify-center max-h-[100px] overflow-y-auto">
+                        {product.data.map((entry, index) => (
+                            <div key={index} className="flex items-center gap-1.5 text-xs bg-white dark:bg-gray-800 px-2 py-1 rounded shadow-sm">
+                                <span 
+                                    className="w-2.5 h-2.5 rounded-full" 
+                                    style={{ backgroundColor: stringToColor(entry.name) }}
+                                />
+                                <span className="font-medium text-gray-700 dark:text-gray-300 max-w-[120px] truncate">
+                                    {entry.name}
+                                </span>
+                                <span className="text-gray-500 dark:text-gray-400">
+                                    {entry.value}%
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 };

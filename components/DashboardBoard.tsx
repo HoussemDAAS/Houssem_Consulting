@@ -191,11 +191,11 @@ const DashboardBoard = () => {
         if (i > 0) pdf.addPage();
         
         const canvas = await html2canvas(pages[i] as HTMLElement, {
-          scale: 2 as any,
+          scale: 2,
           useCORS: true,
           windowWidth: 210 * 3.78,
           windowHeight: 297 * 3.78
-        });
+        } as Parameters<typeof html2canvas>[1]);
 
         const imgData = canvas.toDataURL('image/png');
         pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
@@ -234,11 +234,12 @@ const DashboardBoard = () => {
         setClients(clientsData);
         setVilles(villesData);
         
-        // Set default filters
-        setSelectedCountries(countriesData.map((c: RegionDocument) => ({ 
-          value: c._id.toString(), 
-          label: c.name 
-        })));
+        // Set default filters - NONE (User request: "nothing to be selected by default")
+        // setSelectedCountries(countriesData.map((c: RegionDocument) => ({ 
+        //   value: c._id.toString(), 
+        //   label: c.name 
+        // })));
+        setSelectedCountries([]); // Start empty
 
         // Manufacturers and Sectors start EMPTY
         setSelectedManufacturers([]);
@@ -257,43 +258,46 @@ const DashboardBoard = () => {
     if (selectedCountries.length !== 1) setSelectedCities([]);
   }, [selectedCountries]);
 
+  // When Products change, automatically select ALL associated Manufacturers
+  useEffect(() => {
+    if (selectedProducts.length > 0) {
+      const validProductIds = selectedProducts.map(p => p.value);
+      
+      const relatedManufacturers = clientsInLocation.flatMap(c => 
+        c.products.filter(p => {
+          const prodRef: any = p.product;
+          const pId = prodRef?._id?.toString() || prodRef?.toString();
+          return pId && validProductIds.includes(pId);
+        }).map(p => p.fabriquant).filter(Boolean) as string[]
+      );
+
+      const uniqueManufacturers = Array.from(new Set(relatedManufacturers))
+        .sort()
+        .map(m => ({ value: m, label: m }));
+
+      setSelectedManufacturers(uniqueManufacturers);
+    } else {
+      // If no products selected, reset manufacturers? 
+      // User said "nothing to be selected by default", so let's clear it.
+      setSelectedManufacturers([]);
+    }
+  }, [selectedProducts, clientsInLocation]); // Depend on clientsInLocation to ensure we have data
+
   // Initialize Product Selection once clients are loaded
+  // REMOVED: User requested "nothing to be selected by default"
+  /*
   useEffect(() => {
     if (clients.length > 0 && !hasInitializedFilters.current) {
-        const allProducts = new Map();
-        clients.forEach((c: any) => {
-           c.products.forEach((p: any) => {
-             const prodRef = p.product;
-             if (!prodRef) return;
-             
-             let id, name;
-             if (prodRef._id) {
-               id = prodRef._id.toString();
-               name = prodRef.name;
-             } else if (typeof prodRef === 'string') {
-               id = prodRef;
-               name = prodRef;
-             }
-             
-             if (id && !allProducts.has(id)) {
-               allProducts.set(id, { value: id, label: name });
-             }
-           });
-        });
-
-        const productsArray = Array.from(allProducts.values()).sort((a: any, b: any) => a.label.localeCompare(b.label));
-        
-        if (productsArray.length > 0) {
-            setSelectedProducts(productsArray);
-            hasInitializedFilters.current = true;
-        }
+        // ... (removed auto-select logic)
     }
   }, [clients]);
+  */
 
   // Check if any data exists
   const hasData = useMemo(() => {
-    return clients.some(client => client.products.length > 0);
-  }, [clients]);
+    // Show data only if at least one location is selected (as per "nothing selected by default")
+    return selectedCountries.length > 0;
+  }, [selectedCountries]);
 
   const getLocationData = (): LocationChartData[] => {
     const useCityFilter = selectedCities.length > 0;
@@ -307,12 +311,11 @@ const DashboardBoard = () => {
     const validProducts = selectedProducts.map(p => p.value);
     const validSecteurs = selectedSecteurs.map(s => s.value);
 
-    // Initialize map with Location IDs
-    // Map: LocationID -> ProductName -> Count
-    const locationMap = new Map<string, Map<string, number>>(
+    // Initialize map: LocationID -> ProductName -> ManufacturerName -> Count
+    const locationMap = new Map<string, Map<string, Map<string, number>>>(
       selectedLocationIds.map(locationId => [
         locationId,
-        new Map<string, number>()
+        new Map<string, Map<string, number>>()
       ])
     );
 
@@ -343,58 +346,54 @@ const DashboardBoard = () => {
           productName = prodRef.name;
         } else if (typeof prodRef === 'string') {
           productId = prodRef;
-          productName = prodRef; // Fallback
+          productName = prodRef;
         }
 
         if (!productId || !productName) return;
 
-        // --- FILTERING LOGIC ---
-        let shouldCount = false;
+        // REQUIRE explicit product selection - if no products selected, skip all
+        if (validProducts.length === 0) return;
 
-        // Filter by Product (Primary)
-        if (validProducts.length > 0) {
-          if (validProducts.includes(productId)) {
-            shouldCount = true;
-          }
-        } else {
-          // If no product selected, show all (or filter by manufacturer if selected)
-          shouldCount = true;
-        }
+        // Filter by Product - only include selected products
+        if (!validProducts.includes(productId)) return;
 
-        // Filter by Manufacturer (Secondary)
-        if (shouldCount && validManufacturers.length > 0) {
-          const manufacturer = product.fabriquant;
-          if (!manufacturer || !validManufacturers.includes(manufacturer)) {
-            shouldCount = false;
-          }
-        }
+        // Filter by Manufacturer if selected
+        const manufacturer = product.fabriquant || 'Unknown';
+        if (validManufacturers.length > 0 && !validManufacturers.includes(manufacturer)) return;
 
-        if (shouldCount) {
-          const counts = locationMap.get(locationId)!;
-          // AGGREGATE BY PRODUCT NAME
-          counts.set(productName, (counts.get(productName) || 0) + 1);
+        // Add to nested map
+        const locMap = locationMap.get(locationId)!;
+        if (!locMap.has(productName)) {
+          locMap.set(productName, new Map<string, number>());
         }
+        const prodMap = locMap.get(productName)!;
+        prodMap.set(manufacturer, (prodMap.get(manufacturer) || 0) + 1);
       });
     });
 
+    // Convert to chart data format matching LocationChartData interface
     return selectedLocationIds.map(locationId => {
-      const productsMap = locationMap.get(locationId)!;
-      const total = Array.from(productsMap.values()).reduce((a, b) => a + b, 0);
+      const locMap = locationMap.get(locationId)!;
       
-      const foundProducts = Array.from(productsMap.keys());
+      const locationName = useCityFilter
+        ? villes.find(v => v._id === locationId)?.name || locationId
+        : countries.find(c => c._id === locationId)?.name || locationId;
 
-      return {
-        locationName: useCityFilter
-          ? villes.find(v => v._id === locationId)?.name || locationId
-          : countries.find(c => c._id === locationId)?.name || locationId,
-        data: foundProducts
-          .map(pName => ({
-            name: pName,
-            value: total > 0 ? Number(((productsMap.get(pName)! / total) * 100).toFixed(2)) : 0
+      const products = Array.from(locMap.entries()).map(([pName, mfrMap]) => {
+        const totalItems = Array.from(mfrMap.values()).reduce((sum, count) => sum + count, 0);
+        
+        const data = Array.from(mfrMap.entries())
+          .map(([mName, count]) => ({
+            name: mName,
+            value: totalItems > 0 ? Number(((count / totalItems) * 100).toFixed(2)) : 0
           }))
-          .filter(d => d.value > 0)
-          .sort((a, b) => b.value - a.value)
-      };
+          .filter(item => item.value > 0)
+          .sort((a, b) => b.value - a.value);
+          
+        return { productName: pName, data };
+      }).filter(p => p.data.length > 0);
+
+      return { locationName, products };
     });
   };
 
@@ -424,6 +423,7 @@ const DashboardBoard = () => {
       {/* Filters */}
       <div className="pt-[76px] md:pt-[88px] px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          {/* 1. COUNTRY - Primary */}
           <FilterSelect
             label="Country"
             endpoint="/api/regions"
@@ -436,6 +436,25 @@ const DashboardBoard = () => {
             }))}
           />
 
+          {/* 2. PRODUCT - Primary */}
+          <FilterSelect
+            label="Product"
+            options={availableProducts}
+            value={selectedProducts}
+            onChange={setSelectedProducts}
+            isMulti
+          />
+
+          {/* 3. MANUFACTURER - Primary */}
+          <FilterSelect
+            label="Manufacturer"
+            options={availableManufacturers}
+            value={selectedManufacturers}
+            onChange={setSelectedManufacturers}
+            isMulti
+          />
+
+          {/* 4. CITY - Secondary (optional, only when one country selected) */}
           {selectedRegionId && (
             <FilterSelect
               label="City"
@@ -449,23 +468,7 @@ const DashboardBoard = () => {
             />
           )}
 
-          {/* SWAPPED: Product before Manufacturer */}
-          <FilterSelect
-            label="Product"
-            options={availableProducts}
-            value={selectedProducts}
-            onChange={setSelectedProducts}
-            isMulti
-          />
-
-          <FilterSelect
-            label="Manufacturer"
-            options={availableManufacturers}
-            value={selectedManufacturers}
-            onChange={setSelectedManufacturers}
-            isMulti
-          />
-
+          {/* 5. SECTEUR - Secondary (optional) */}
           <FilterSelect
             label="Secteur"
             options={availableSecteurs}
@@ -497,122 +500,108 @@ const DashboardBoard = () => {
         )}
       </div>
 
-      {/* PDF Template */}
+      {/* PDF Template - COMPACT VERSION - No wasted space */}
       <div ref={pdfRef} className="absolute left-[-10000px] top-[-10000px]">
-        {/* We use 2 locations per page to save space */}
-        {Array.from({ length: Math.ceil(locationData.length / 2) }).map((_, pageIndex) => {
-          const pageLocations = locationData.slice(pageIndex * 2, pageIndex * 2 + 2);
-          
-          return (
-            <div key={pageIndex} className="w-[210mm] h-[297mm] bg-white p-8 flex flex-col">
-              {/* Page Header */}
-              <div className="flex items-center justify-between mb-4 border-b pb-2">
-                <div className="flex items-center gap-3">
-                  <img src="/logo.jpeg" alt="Company Logo" className="h-12" />
-                  <div>
-                    <h1 className="text-lg font-bold text-gray-900">Sales Analytics Report</h1>
-                    <p className="text-gray-500 text-xs">
-                      Generated: {new Date().toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-xs text-gray-400">
-                  Page {pageIndex + 1} of {Math.ceil(locationData.length / 2)}
+        {/* Data Pages - Multiple products per page */}
+        {locationData.map((location, locIndex) => (
+          <div key={locIndex} className="w-[210mm] h-[297mm] bg-white p-6 flex flex-col">
+            {/* Page Header - Compact on first page with filters */}
+            <div className="flex items-center justify-between mb-4 border-b pb-2">
+              <div className="flex items-center gap-3">
+                <img src="/logo.jpeg" alt="Logo" className="h-10" />
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">Sales Analytics Report</h1>
+                  <p className="text-xs text-gray-500">Manufacturer Market Share by Product</p>
                 </div>
               </div>
-
-              {/* Filters - Only on first page, compact */}
-              {pageIndex === 0 && (
-                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <h3 className="text-xs font-semibold mb-1 text-gray-700">Filters</h3>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
-                    <div><span className="font-medium">Countries:</span> {formatFilterList(selectedCountries)}</div>
-                    <div><span className="font-medium">Cities:</span> {formatFilterList(selectedCities)}</div>
-                    <div className="col-span-2"><span className="font-medium">Products:</span> {formatFilterList(selectedProducts)}</div>
-                    <div><span className="font-medium">Manufacturers:</span> {formatFilterList(selectedManufacturers)}</div>
-                    <div><span className="font-medium">Sectors:</span> {formatFilterList(selectedSecteurs)}</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Content: 2 Locations per page */}
-              <div className="flex-1 flex flex-col gap-6">
-                {pageLocations.map((location, locIndex) => (
-                  <div key={locIndex} className="flex-1 border-b last:border-0 pb-4 last:pb-0 flex flex-col gap-2">
-                    <h2 className="text-lg font-bold text-[#ccbeac]">{location.locationName}</h2>
-                    
-                    <div className="flex gap-4 h-full">
-                      {/* Left: Chart */}
-                      <div className="w-[40%] h-[220px] border border-gray-100 rounded-lg bg-gray-50/30 flex items-center justify-center">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={location.data}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={40}
-                              outerRadius={70}
-                              paddingAngle={2}
-                              dataKey="value"
-                              nameKey="name"
-                              isAnimationActive={false}
-                            >
-                              {location.data.map((entry, idx) => (
-                                <Cell 
-                                  key={`cell-${idx}`}
-                                  fill={stringToColor(entry.name)}
-                                  strokeWidth={1}
-                                  stroke="#fff"
-                                />
-                              ))}
-                            </Pie>
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Right: Table */}
-                      <div className="w-[60%] overflow-hidden">
-                        <table className="w-full text-[10px] text-left">
-                          <thead className="bg-gray-100 text-gray-700 font-semibold">
-                            <tr>
-                              <th className="py-1 px-2 border-b w-8"></th>
-                              <th className="py-1 px-2 border-b">Product</th>
-                              <th className="py-1 px-2 border-b text-right">Share</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {location.data.map((entry, idx) => (
-                              <tr key={idx} className="hover:bg-gray-50">
-                                <td className="py-1 px-2">
-                                  <div 
-                                    className="w-2.5 h-2.5 rounded-full border border-gray-200"
-                                    style={{ backgroundColor: stringToColor(entry.name) }}
-                                  />
-                                </td>
-                                <td className="py-1 px-2 text-gray-800 truncate max-w-[150px]">
-                                  {entry.name}
-                                </td>
-                                <td className="py-1 px-2 text-right font-mono text-gray-600">
-                                  {entry.value.toFixed(1)}%
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Footer */}
-              <div className="mt-auto pt-4 border-t flex justify-between text-[10px] text-gray-400">
-                <span>Houssem Consulting</span>
-                <span>{new Date().getFullYear()}</span>
+              <div className="text-right text-xs text-gray-400">
+                <p>Page {locIndex + 1} of {locationData.length}</p>
+                <p>{new Date().toLocaleDateString('fr-FR')}</p>
               </div>
             </div>
-          );
-        })}
+
+            {/* Filters - Only on first page, compact inline */}
+            {locIndex === 0 && (
+              <div className="mb-4 p-3 bg-gray-50 rounded border border-gray-200 text-[10px]">
+                <div className="grid grid-cols-2 gap-2">
+                  <div><span className="font-bold">Countries:</span> {selectedCountries.map(c => c.label).join(', ') || 'All'}</div>
+                  {selectedCities.length > 0 && <div><span className="font-bold">Cities:</span> {selectedCities.map(c => c.label).join(', ')}</div>}
+                  <div className="col-span-2"><span className="font-bold">Products:</span> {selectedProducts.map(p => p.label).join(', ') || 'None'}</div>
+                  <div><span className="font-bold">Manufacturers:</span> {selectedManufacturers.map(m => m.label).join(', ') || 'All'}</div>
+                  {selectedSecteurs.length > 0 && <div><span className="font-bold">Sectors:</span> {selectedSecteurs.map(s => s.label).join(', ')}</div>}
+                </div>
+              </div>
+            )}
+
+            {/* Location Title */}
+            <h2 className="text-lg font-bold text-[#ccbeac] border-b pb-2 mb-4">{location.locationName}</h2>
+
+            {/* Products Grid - Compact, auto-sized */}
+            <div className="grid grid-cols-3 gap-3 auto-rows-min">
+              {location.products.map((product, pIdx) => (
+                <div key={pIdx} className="border rounded p-2 bg-gray-50/50">
+                  {/* Product Title */}
+                  <h3 className="text-[10px] font-bold text-center mb-2 text-gray-800 border-b pb-1">
+                    {product.productName}
+                  </h3>
+                  
+                  {/* Chart + Table side by side */}
+                  <div className="flex gap-2">
+                    {/* Chart - Small and compact */}
+                    <div className="w-[60px] h-[60px] flex-shrink-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={product.data}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={15}
+                            outerRadius={28}
+                            paddingAngle={1}
+                            dataKey="value"
+                            nameKey="name"
+                            isAnimationActive={false}
+                          >
+                            {product.data.map((entry, idx) => (
+                              <Cell 
+                                key={`cell-${idx}`}
+                                fill={stringToColor(entry.name)}
+                                strokeWidth={0.5}
+                                stroke="#fff"
+                              />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    
+                    {/* Table - Show ALL manufacturers, NO truncation */}
+                    <div className="flex-1 text-[8px]">
+                      {product.data.map((entry, idx) => (
+                        <div key={idx} className="flex justify-between py-0.5">
+                          <div className="flex items-center gap-1">
+                            <div 
+                              className="w-1.5 h-1.5 rounded-full flex-shrink-0" 
+                              style={{ backgroundColor: stringToColor(entry.name) }} 
+                            />
+                            <span>{entry.name}</span>
+                          </div>
+                          <span className="font-medium ml-1">{entry.value.toFixed(0)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Page Footer */}
+            <div className="mt-auto pt-4 border-t flex justify-between text-[10px] text-gray-400">
+              <span>Houssem Consulting - Confidential</span>
+              <span>© {new Date().getFullYear()}</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
